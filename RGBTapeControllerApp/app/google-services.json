@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "866740031992",
+    "firebase_url": "https://lightingproject-b4e13.firebaseio.com",
+    "project_id": "lightingproject-b4e13",
+    "storage_bucket": "lightingproject-b4e13.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:866740031992:android:6e412b0f78dbc965",
+        "android_client_info": {
+          "package_name": "com.rgbtape.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "866740031992-qedee7pb0jutr96k5b6b4djh61kett3m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZqycXrR40HdgasOsnzZ21Sd14VxRcOhc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "866740031992-qedee7pb0jutr96k5b6b4djh61kett3m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

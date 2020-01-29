@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">RGB Tape App</string>
+    <string name="title_home">Home</string>
+    <string name="title_custom_effects">Custom Effects</string>
+    <string name="title_alarms">Alarms</string>
+    <string name="speed_label">Speed</string>
+    <string name="colour_label">Colour</string>
+    <string name="on_off_button_description">On Off Button</string>
+    <string name="intensity_label">Intensity</string>
+
+
+
+
+    <string-array name="country_arrays">
+        <item>Malaysia</item>
+        <item>United States</item>
+        <item>Indonesia</item>
+        <item>France</item>
+        <item>Italy</item>
+        <item>Singapore</item>
+        <item>New Zealand</item>
+        <item>India</item>
+    </string-array>
+</resources>
