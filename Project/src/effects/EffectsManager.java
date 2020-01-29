@@ -12,7 +12,7 @@ public class EffectsManager {
     public static final String STROBE_EFFECT = "Strobe";
     public static final String WARM_WHITE = "WarmWhite";
     public static final String COOL_WHITE = "CoolWhite";
-
+//test commit
 
     private ITapeControl tc;
     private IEffect currentEffect;
