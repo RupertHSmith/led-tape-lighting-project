@@ -12,6 +12,8 @@ public class EffectItem {
     public static final String SPECTRUM_CYCLING = "SpectrumCycling";
     public static final String CUSTOM_EFFECT = "CustomEffect";
     public static final String STROBE_EFFECT = "Strobe";
+    public static final String COOL_WHITE = "CoolWhite";
+    public static final String WARM_WHITE = "WarmWhite";
 
 
     private String effectname;
@@ -36,6 +38,8 @@ public class EffectItem {
     public static List<EffectItem> getDefaultEffects(){
         List<EffectItem> defaultEffectItems = new ArrayList<>();
         defaultEffectItems.add(new EffectItem("Static", STATIC));
+        defaultEffectItems.add(new EffectItem("Cool White", COOL_WHITE));
+        defaultEffectItems.add(new EffectItem("Warm White", WARM_WHITE));
         defaultEffectItems.add(new EffectItem("Spectrum Cycling", SPECTRUM_CYCLING));
         defaultEffectItems.add(new EffectItem("Breathing", BREATHING));
         defaultEffectItems.add(new EffectItem("Strobe", STROBE_EFFECT));
