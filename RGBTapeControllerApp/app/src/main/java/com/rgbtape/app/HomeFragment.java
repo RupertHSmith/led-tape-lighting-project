@@ -38,7 +38,7 @@ public class HomeFragment extends Fragment implements CustomEffectListener, Devi
      * Set instance of home fragment connection so can request info from db.
      * @param homeFragmentConnection The instance
      */
-    private HomeFragment(HomeFragmentConnection homeFragmentConnection){
+    public HomeFragment(HomeFragmentConnection homeFragmentConnection){
         this.homeFragmentConnection = homeFragmentConnection;
         homeFragmentConnection.setCustomEffectsListener(this);
     }
