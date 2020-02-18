@@ -28,7 +28,7 @@ public class HomeFragment extends Fragment implements CustomEffectListener, Devi
     private ArrayList<EffectItem> effectsList;
     private EffectsAdapter mAdapter;
 
-    //TODO: will actually init with whatever the state of the tape is...
+
     private boolean on = true;
     private Colour colour;
 
@@ -38,7 +38,7 @@ public class HomeFragment extends Fragment implements CustomEffectListener, Devi
      * Set instance of home fragment connection so can request info from db.
      * @param homeFragmentConnection The instance
      */
-    public HomeFragment(HomeFragmentConnection homeFragmentConnection){
+    private HomeFragment(HomeFragmentConnection homeFragmentConnection){
         this.homeFragmentConnection = homeFragmentConnection;
         homeFragmentConnection.setCustomEffectsListener(this);
     }
@@ -82,7 +82,7 @@ public class HomeFragment extends Fragment implements CustomEffectListener, Devi
     }
 
     private void initOnOff(View view){
-        final ImageButton onOff = (ImageButton) view.findViewById(R.id.on_off_button);
+        final ImageButton onOff = view.findViewById(R.id.on_off_button);
         onOff.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -116,7 +116,7 @@ public class HomeFragment extends Fragment implements CustomEffectListener, Devi
     }
 
     private void initSliders(View view){
-        SeekBar seekBar = (SeekBar) view.findViewById(R.id.seekBar);
+        SeekBar seekBar = view.findViewById(R.id.seekBar);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -162,7 +162,7 @@ public class HomeFragment extends Fragment implements CustomEffectListener, Devi
     private void showCp(){
         final ColorPicker cp = new ColorPicker(getActivity(), colour.getRed(), colour.getGreen(),colour.getBlue());
         cp.show();
-        Button okButton = (Button) cp.findViewById(R.id.okColorButton);
+        Button okButton = cp.findViewById(R.id.okColorButton);
 
         okButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -182,8 +182,11 @@ public class HomeFragment extends Fragment implements CustomEffectListener, Devi
     }
 
     private void setButtonColour(int colour){
-        Button colourButton = getView().findViewById(R.id.alarm_colour_button);
-        colourButton.setBackgroundColor(colour);
+        View view = getView();
+        if (view != null) {
+            Button colourButton = view.findViewById(R.id.alarm_colour_button);
+            colourButton.setBackgroundColor(colour);
+        }
     }
 
     private void initList(){
