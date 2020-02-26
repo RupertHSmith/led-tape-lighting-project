@@ -275,69 +275,32 @@ public class TapeControl implements ITapeControl {
                 float gChange = s.getGreen() - g;
                 float bChange = s.getBlue() - b;
 
-                //check not zero difference
 
-//                boolean isEqual = true;
-//                if (Float.valueOf(r).intValue() != Float.valueOf(s.getRed()).intValue())
-//                    isEqual = false;
-//                if (Float.valueOf(g).intValue() != Float.valueOf(s.getGreen()).intValue())
-//                    isEqual = false;
-//                if (Float.valueOf(b).intValue() != Float.valueOf(s.getBlue()).intValue())
-//                    isEqual = false;
-//
-//                if (!isEqual) {
+                long prevTime = System.nanoTime();
+                long durationNano = (long) (duration * Math.pow(10, 9));
+                long finTime = prevTime + durationNano;
 
+                while (!halted) {
 
-                    long prevTime = System.nanoTime();
-                    long durationNano = (long) (duration * Math.pow(10, 9));
-                    long finTime = prevTime + durationNano;
+                    double fadeProportion = getCurrentFadeProportion(prevTime, durationNano, System.nanoTime());
 
+                    //Calc new rgb
+                    float newR = (float) (fadeProportion * rChange) + prevR;
+                    float newG = (float) (fadeProportion * gChange) + prevG;
+                    float newB = (float) (fadeProportion * bChange) + prevB;
 
-                    while (!halted) {
+                    setState(new LedState(newR, newG, newB));
 
-                        double fadeProportion = getCurrentFadeProportion(prevTime, durationNano, System.nanoTime());
-
-                        //Calc new rgb
-                        float newR = (float) (fadeProportion * rChange) + prevR;
-                        float newG = (float) (fadeProportion * gChange) + prevG;
-                        float newB = (float) (fadeProportion * bChange) + prevB;
-
-                        setState(new LedState(newR, newG, newB));
-
-                        if (fadeProportion >= 1) {
-                            break;
-                        }
-
-                        try {
-                            Thread.sleep(40);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                    if (fadeProportion >= 1) {
+                        break;
                     }
-//             //   } else {
-//                    try {
-//                        int totalDurationMilis = Float.valueOf(duration * 1000).intValue();
-//
-//                        int timePerCycle = Float.valueOf(totalDurationMilis / 15f).intValue();
-//
-//                        for (int i = 0; i < 15; i++){
-//                            if (!getHalted()){
-//
-//                                Thread.sleep(timePerCycle);
-//
-//
-//
-//                            } else {
-//                                break;
-//                            }
-//                        }
-//
-//
-//                        Thread.sleep(Float.valueOf(duration * 1000).intValue());
-//                    } catch (InterruptedException e){
-//                        e.printStackTrace();
-//                    }
-//              //  }
+
+                    try {
+                        Thread.sleep(40);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
                 if (halted) {
                     halted = false;
                 }
