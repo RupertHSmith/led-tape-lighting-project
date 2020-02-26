@@ -20,6 +20,16 @@ public class TapeControl implements ITapeControl {
     private static int PIN_NUMBER_GREEN = 22;
     private static int PIN_NUMBER_BLUE = 24;
 
+    private static final int _PI_CMD_PWM = 83886080;
+    private static final int _PI_CMD_PFS = 117440512;
+    private static final int _PI_CMD_PRS = 100663296;
+    private static final int _PWM_FREQUENCY = 1677721600;
+    private static final int _PWM_RESOLUTION = 262144;
+
+    private static final int _PIN_RED = 285212672;
+    private static final int _PIN_GREEN = 369098752;
+    private static final int _PIN_BLUE = 402653184;
+
     private Socket socket;
     private DataOutputStream gpioDataOut;
 
