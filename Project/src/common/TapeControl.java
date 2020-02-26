@@ -34,6 +34,8 @@ public class TapeControl implements ITapeControl {
     private static final int _PIN_GREEN = 369098752;
     private static final int _PIN_BLUE = 402653184;
 
+    private static final int FADE_UPDATE_PERIOD = 20;
+
     private Socket socket;
     private DataOutputStream gpioDataOut;
 
@@ -296,7 +298,7 @@ public class TapeControl implements ITapeControl {
                     }
 
                     try {
-                        Thread.sleep(40);
+                        Thread.sleep(FADE_UPDATE_PERIOD);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
