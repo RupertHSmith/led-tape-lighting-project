@@ -65,7 +65,7 @@ public class Strobe implements IEffect, Runnable {
     public void run() {
         try {
             //First fade tape out
-            tapeControl.fadeToBlack(transition, this);
+            tapeControl.smartFadeToBlack(this);
 
 
             //Then begin the cycling effect while running, check termination before requesting another transition

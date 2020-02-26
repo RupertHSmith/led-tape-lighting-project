@@ -58,7 +58,7 @@ public class Breathing implements IEffect, Runnable {
     public void run() {
         try {
             //First fade tape out
-            tapeControl.fadeToBlack(transition, this);
+            tapeControl.smartFadeToBlack(this);
 
 
 

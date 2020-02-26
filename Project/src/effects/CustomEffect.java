@@ -198,7 +198,7 @@ public class CustomEffect implements IEffect, Runnable{
             boolean firstLoop = true;
 
             //First fade tape to starting colour
-            tapeControl.fadeTo(getStartingState(), transistion, this);
+            tapeControl.smartFade(getStartingState(), this);
 
 
             Long previousStop = 0L;

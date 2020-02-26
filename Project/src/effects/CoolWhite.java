@@ -46,7 +46,7 @@ public class CoolWhite implements IEffect, Runnable {
     public void run() {
         //Run transition
         try {
-            tapeControl.fadeTo(colour, transition, this);
+            tapeControl.smartFade(colour,this);
         } catch (TapeInUseException e){
             System.err.println(e.getMessage());
         }
