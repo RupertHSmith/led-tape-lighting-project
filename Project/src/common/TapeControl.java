@@ -19,12 +19,6 @@ public class TapeControl implements ITapeControl {
 
     private static int PIN_NUMBER_RED = 17;
     private static int PIN_NUMBER_GREEN = 22;
-
-    @Override
-    public void smartFadeToBlack(IEffect controller) throws TapeInUseException {
-
-    }
-
     private static int PIN_NUMBER_BLUE = 24;
 
     private int[] pwmTranslation;
@@ -266,6 +260,12 @@ public class TapeControl implements ITapeControl {
      */
     @Override
     public void smartFade(LedState s, IEffect controller) throws TapeInUseException {
+        float duration = calculateSmartDuration(s);
+        //now perform this fade
+        fadeTo(s, duration, controller);
+    }
+
+    private float calculateSmartDuration(LedState s){
         //Total rgb difference
         float rChange = s.getRed() - r;
         float gChange = s.getGreen() - g;
@@ -281,10 +281,7 @@ public class TapeControl implements ITapeControl {
             dominant = bChange;
         }
 
-        float duration = new Double(dominant * TIME_PER_RGB_VAL).floatValue();
-
-        //now perform this fade
-        fadeTo(s, duration, controller);
+        return new Double(dominant * TIME_PER_RGB_VAL).floatValue();
     }
 
     /**
@@ -370,6 +367,11 @@ public class TapeControl implements ITapeControl {
     @Override
     public void fadeToBlack(float duration, IEffect controller) throws TapeInUseException {
         fadeTo(LedState.BLACK, duration, controller);
+    }
+
+    @Override
+    public void smartFadeToBlack(IEffect controller) throws TapeInUseException {
+        fadeToBlack(calculateSmartDuration(LedState.BLACK), controller);
     }
 
     /**
