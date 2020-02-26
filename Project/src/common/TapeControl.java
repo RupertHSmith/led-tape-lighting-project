@@ -267,9 +267,9 @@ public class TapeControl implements ITapeControl {
 
     private float calculateSmartDuration(LedState s){
         //Total rgb difference
-        float rChange = s.getRed() - r;
-        float gChange = s.getGreen() - g;
-        float bChange = s.getBlue() - b;
+        float rChange = Math.abs(s.getRed() - r);
+        float gChange = Math.abs(s.getGreen() - g);
+        float bChange = Math.abs(s.getBlue() - b);
 
         float dominant;
         //choose largest
