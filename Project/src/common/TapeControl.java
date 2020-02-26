@@ -21,6 +21,9 @@ public class TapeControl implements ITapeControl {
     private static int PIN_NUMBER_GREEN = 22;
     private static int PIN_NUMBER_BLUE = 24;
 
+    private int[] pwmTranslation;
+    private static final double PWM_CURVE_PARAMETER = 2.35;
+
     private static final int _PI_CMD_PWM = 83886080;
     private static final int _PI_CMD_PFS = 117440512;
     private static final int _PI_CMD_PRS = 100663296;
@@ -45,6 +48,8 @@ public class TapeControl implements ITapeControl {
         g = 0;
         b = 0;
 
+        initialisePWMTranslationArray(PWM_CURVE_PARAMETER);
+
         try {
             //Initialize PIGPIO TCP socket connection
             InetAddress localHost = InetAddress.getLocalHost();
@@ -64,6 +69,16 @@ public class TapeControl implements ITapeControl {
             e.printStackTrace();
         }
 
+    }
+
+    private void initialisePWMTranslationArray(double k){
+        pwmTranslation = new int[256];
+        double q = (k / 255d);
+        double c = (1023f / (Math.exp(k) - 1));
+
+        for (int x = 0; x < 256; x++){
+            pwmTranslation[x] = Integer.reverseBytes((int) Math.round((Math.exp(x * q) - 1) * c));
+        }
     }
 
     private void initialisePinParameters() throws IOException{
@@ -155,25 +170,62 @@ public class TapeControl implements ITapeControl {
 
 
     private synchronized void setState(LedState s){
-        r = s.getRed();
-        g = s.getGreen();
-        b = s.getBlue();
+        ByteBuffer byteBuffer;
+        byte[] bytes;
 
-        setStateTape(r,g,b);
+        int newR = Float.valueOf(r).intValue();
+        int newG = Float.valueOf(g).intValue();
+        int newB = Float.valueOf(b).intValue();
+
+        try {
+            //Don't send update if the same to save computation
+            if (newR != r) {
+                r = newR;
+                byteBuffer = ByteBuffer.allocate(16);
+
+                byteBuffer.putInt(_PI_CMD_PWM);
+                byteBuffer.putInt(_PIN_RED);
+                byteBuffer.putInt(pwmTranslation[newR]);
+                byteBuffer.putInt(0);
+
+                bytes = byteBuffer.array();
+
+                gpioDataOut.write(bytes);
+            }
+
+            if (newG != g) {
+                g = newG;
+                byteBuffer = ByteBuffer.allocate(16);
+
+                byteBuffer.putInt(_PI_CMD_PWM);
+                byteBuffer.putInt(_PIN_GREEN);
+                byteBuffer.putInt(pwmTranslation[newG]);
+                byteBuffer.putInt(0);
+
+                bytes = byteBuffer.array();
+
+                gpioDataOut.write(bytes);
+            }
+
+            if (newB != b) {
+                b = newB;
+                byteBuffer = ByteBuffer.allocate(16);
+
+                byteBuffer.putInt(_PI_CMD_PWM);
+                byteBuffer.putInt(_PIN_BLUE);
+                byteBuffer.putInt(pwmTranslation[newB]);
+                byteBuffer.putInt(0);
+
+                bytes = byteBuffer.array();
+
+                gpioDataOut.write(bytes);
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+        }
         //System.out.println(r + ", " + g + ", "+ b);
 
     //    rgbViewer.setColour(s);
-    }
-
-    private void setStateTape(float r, float g, float b){
-        try {
-            int intR = Float.valueOf(r).intValue();
-            int intG = Float.valueOf(g).intValue();
-            int intB = Float.valueOf(b).intValue();
-         p.exec("sudo pigs p 17 " + intR +" p 22 " + intG + " p 24 " + intB);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
     }
 
     private synchronized LedState getState(){
