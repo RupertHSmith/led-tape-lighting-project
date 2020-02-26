@@ -7,6 +7,7 @@ public interface ITapeControl {
     void smartFade(LedState s, IEffect controller) throws TapeInUseException;
     void fadeTo(LedState s, float duration, IEffect controller) throws TapeInUseException;
     void fadeThruBlack(LedState s, float duration) throws TapeInUseException;
+    void smartFadeToBlack(IEffect controller) throws TapeInUseException;
     void fadeToBlack(float duration, IEffect controller) throws TapeInUseException;
     void setController(IEffect controller) throws TapeInUseException;
 
