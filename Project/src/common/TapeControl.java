@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 
 public class TapeControl implements ITapeControl {
@@ -50,6 +51,8 @@ public class TapeControl implements ITapeControl {
             socket = new Socket(localHost, 8888);
             gpioDataOut = new DataOutputStream(socket.getOutputStream());
 
+            //Init pins
+            initialisePinParameters();
         } catch (IOException e){
             e.printStackTrace();
         }
@@ -61,6 +64,84 @@ public class TapeControl implements ITapeControl {
             e.printStackTrace();
         }
 
+    }
+
+    private void initialisePinParameters() throws IOException{
+        ByteBuffer b;
+        byte[] bytes;
+
+        //SET FREQUENCY OF RED TO 100 HZ//
+        b = ByteBuffer.allocate(16);
+
+        b.putInt(_PI_CMD_PFS);
+        b.putInt(_PIN_RED);
+        b.putInt(_PWM_FREQUENCY);
+        b.putInt(0);
+
+        bytes = b.array();
+
+        gpioDataOut.write(bytes);
+
+        //SET RANGE OF RED TO 10 BIT//
+        b = ByteBuffer.allocate(16);
+
+        b.putInt(_PI_CMD_PRS);
+        b.putInt(_PIN_RED);
+        b.putInt(_PWM_RESOLUTION);
+        b.putInt(0);
+
+        bytes = b.array();
+
+        gpioDataOut.write(bytes);
+
+
+        //SET FREQUENCY OF PIN 22 TO 100 HZ//
+        b = ByteBuffer.allocate(16);
+
+        b.putInt(_PI_CMD_PFS);
+        b.putInt(_PIN_GREEN);
+        b.putInt(_PWM_FREQUENCY);
+        b.putInt(0);
+
+        bytes = b.array();
+
+        gpioDataOut.write(bytes);
+
+        //SET RANGE OF PIN 22 TO 10 BIT//
+        b = ByteBuffer.allocate(16);
+
+        b.putInt(_PI_CMD_PRS);
+        b.putInt(_PIN_GREEN);
+        b.putInt(_PWM_RESOLUTION);
+        b.putInt(0);
+
+        bytes = b.array();
+
+        gpioDataOut.write(bytes);
+
+        //SET FREQUENCY OF BLUE TO 100 HZ//
+        b = ByteBuffer.allocate(16);
+
+        b.putInt(_PI_CMD_PFS);
+        b.putInt(_PIN_BLUE);
+        b.putInt(_PWM_FREQUENCY);
+        b.putInt(0);
+
+        bytes = b.array();
+
+        gpioDataOut.write(bytes);
+
+        //SET RANGE OF BLUE TO 10 BIT//
+        b = ByteBuffer.allocate(16);
+
+        b.putInt(_PI_CMD_PRS);
+        b.putInt(_PIN_BLUE);
+        b.putInt(_PWM_RESOLUTION);
+        b.putInt(0);
+
+        bytes = b.array();
+
+        gpioDataOut.write(bytes);
     }
 
     private synchronized  void setTransitioning(boolean transitioning){
