@@ -273,9 +273,9 @@ public class TapeControl implements ITapeControl {
 
         float dominant;
         //choose largest
-        if (rChange > gChange && rChange > bChange){
+        if (rChange >= gChange && rChange >= bChange){
             dominant = rChange;
-        } else if (gChange > rChange && gChange > bChange){
+        } else if (gChange >= rChange && gChange >= bChange){
             dominant = gChange;
         } else {
             dominant = bChange;
