@@ -35,6 +35,7 @@ public class TapeControl implements ITapeControl {
     private static final int _PIN_BLUE = 402653184;
 
     private static final int FADE_UPDATE_PERIOD = 20;
+    private static final double TIME_PER_RGB_VAL = 0.004;
 
     private Socket socket;
     private DataOutputStream gpioDataOut;
@@ -252,9 +253,20 @@ public class TapeControl implements ITapeControl {
     }
 
     /**
+     * Fades from the current led state to another at a fixed rate (defined by the smart fade constant)
+     * @param s
+     * @param controller
+     * @throws TapeInUseException
+     */
+    @Override
+    public void smartFade(LedState s, IEffect controller) throws TapeInUseException {
+
+    }
+
+    /**
      * Fades from the current led state to another.
      * @param s The Led State to fade to
-     * @param duration The duration of the fade
+     * @param duration The duration of the fade in seconds
      * @param controller The controller requesting this fade
      * @throws TapeInUseException If the tape is currently controlled by another effect, this will be thrown
      */

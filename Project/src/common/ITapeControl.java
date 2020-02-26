@@ -4,6 +4,7 @@ import effects.IEffect;
 
 public interface ITapeControl {
     void snapTo(LedState s, IEffect controller) throws TapeInUseException;
+    void smartFade(LedState s, IEffect controller) throws TapeInUseException;
     void fadeTo(LedState s, float duration, IEffect controller) throws TapeInUseException;
     void fadeThruBlack(LedState s, float duration) throws TapeInUseException;
     void fadeToBlack(float duration, IEffect controller) throws TapeInUseException;
