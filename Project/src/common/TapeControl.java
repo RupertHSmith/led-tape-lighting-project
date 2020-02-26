@@ -43,6 +43,13 @@ public class TapeControl implements ITapeControl {
     boolean transitioning = false;
 
     public TapeControl(){
+        p = Runtime.getRuntime();
+        try {
+            p.exec("sudo pigpiod");
+            p.exec("sudo pigs p 17 0 p 22 0 p 24 0");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
         r = 0;
         g = 0;
@@ -59,13 +66,6 @@ public class TapeControl implements ITapeControl {
             //Init pins
             initialisePinParameters();
         } catch (IOException e){
-            e.printStackTrace();
-        }
-        p = Runtime.getRuntime();
-        try {
-        p.exec("sudo pigpiod");
-        p.exec("sudo pigs p 17 0 p 22 0 p 24 0");
-        } catch (Exception e){
             e.printStackTrace();
         }
 
@@ -173,9 +173,9 @@ public class TapeControl implements ITapeControl {
         ByteBuffer byteBuffer;
         byte[] bytes;
 
-        int newR = Float.valueOf(r).intValue();
-        int newG = Float.valueOf(g).intValue();
-        int newB = Float.valueOf(b).intValue();
+        int newR = s.getRed();
+        int newG = s.getGreen();
+        int newB = s.getBlue();
 
         try {
             //Don't send update if the same to save computation
@@ -186,6 +186,7 @@ public class TapeControl implements ITapeControl {
                 byteBuffer.putInt(_PI_CMD_PWM);
                 byteBuffer.putInt(_PIN_RED);
                 byteBuffer.putInt(pwmTranslation[newR]);
+                System.out.println("Red pwm trans " + pwmTranslation[newR]);
                 byteBuffer.putInt(0);
 
                 bytes = byteBuffer.array();
