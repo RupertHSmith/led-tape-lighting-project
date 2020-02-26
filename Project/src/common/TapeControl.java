@@ -2,6 +2,11 @@ package common;
 
 import effects.IEffect;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+
 
 public class TapeControl implements ITapeControl {
 
@@ -15,6 +20,9 @@ public class TapeControl implements ITapeControl {
     private static int PIN_NUMBER_GREEN = 22;
     private static int PIN_NUMBER_BLUE = 24;
 
+    private Socket socket;
+    private DataOutputStream gpioDataOut;
+
     private IEffect controller;
 
     boolean halted = false;
@@ -26,9 +34,19 @@ public class TapeControl implements ITapeControl {
         g = 0;
         b = 0;
 
+        try {
+            //Initialize PIGPIO TCP socket connection
+            InetAddress localHost = InetAddress.getLocalHost();
+            socket = new Socket(localHost, 8888);
+            gpioDataOut = new DataOutputStream(socket.getOutputStream());
+
+        } catch (IOException e){
+            e.printStackTrace();
+        }
         p = Runtime.getRuntime();
         try {
         p.exec("sudo pigpiod");
+        p.exec("sudo pigs p 17 0 p 22 0 p 24 0");
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -51,7 +69,7 @@ public class TapeControl implements ITapeControl {
         b = s.getBlue();
 
         setStateTape(r,g,b);
-       // System.out.println(r + ", " + g + ", "+ b);
+        //System.out.println(r + ", " + g + ", "+ b);
 
     //    rgbViewer.setColour(s);
     }
