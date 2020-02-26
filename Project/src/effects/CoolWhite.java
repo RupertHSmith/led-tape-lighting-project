@@ -16,7 +16,7 @@ public class CoolWhite implements IEffect, Runnable {
     public CoolWhite(ITapeControl tapeControl, int intensity, int transition) throws InvalidTransitionTimeException {
         if (transition < 0 | transition > 10)
             throw new InvalidTransitionTimeException();
-        this.colour = new LedState(255,150,40);
+        this.colour = new LedState(255,150,70);
         this.tapeControl = tapeControl;
         this.transition = transition;
         this.intensity = intensity;
