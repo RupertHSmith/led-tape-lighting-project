@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="TestingGPIOSocketConnection:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/TestingGPIOSocketConnection_jar</output-path>
+    <root id="archive" name="TestingGPIOSocketConnection.jar">
+      <element id="module-output" name="TestingGPIOSocketConnection" />
+    </root>
+  </artifact>
+</component>
