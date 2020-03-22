@@ -27,7 +27,8 @@ public class AlarmEvent implements IEffect, Runnable {
         try {
             tc.halt();
             tc.setController(this);
-            tc.fadeToBlack(1, this);
+            tc.smartFadeToBlack(this);
+            //tc.fadeToBlack(1, this);
         } catch (TapeInUseException e){
             e.printStackTrace();
         }

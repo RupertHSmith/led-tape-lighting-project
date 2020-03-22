@@ -180,7 +180,7 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
     public void run() {
         try {
             tc.setController(this);
-            tc.fadeTo(LedState.BLACK, transition, this);
+            tc.smartFade(LedState.BLACK, this);
             setAlarmComplete(false);
             alarmController.addAlarmListener(this);
 

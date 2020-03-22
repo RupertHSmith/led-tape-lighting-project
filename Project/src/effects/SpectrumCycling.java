@@ -84,7 +84,7 @@ public class SpectrumCycling implements IEffect, Runnable{
     public void run() {
         //fade to start colour
         try {
-            tapeControl.fadeTo(STAGE_1,  transition, this);
+            tapeControl.smartFade(STAGE_1,  this);
 
             while (!isTerminated()){
                 tapeControl.fadeTo(STAGE_2,  duration, this);

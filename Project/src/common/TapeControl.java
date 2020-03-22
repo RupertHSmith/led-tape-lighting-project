@@ -34,6 +34,9 @@ public class TapeControl implements ITapeControl {
     private static final int _PIN_GREEN = 369098752;
     private static final int _PIN_BLUE = 402653184;
 
+    private static final int FADE_UPDATE_PERIOD = 20;
+    private static final double TIME_PER_RGB_VAL = 0.004;
+
     private Socket socket;
     private DataOutputStream gpioDataOut;
 
@@ -250,9 +253,41 @@ public class TapeControl implements ITapeControl {
     }
 
     /**
+     * Fades from the current led state to another at a fixed rate (defined by the smart fade constant)
+     * @param s
+     * @param controller
+     * @throws TapeInUseException
+     */
+    @Override
+    public void smartFade(LedState s, IEffect controller) throws TapeInUseException {
+        float duration = calculateSmartDuration(s);
+        //now perform this fade
+        fadeTo(s, duration, controller);
+    }
+
+    private float calculateSmartDuration(LedState s){
+        //Total rgb difference
+        float rChange = Math.abs(s.getRed() - r);
+        float gChange = Math.abs(s.getGreen() - g);
+        float bChange = Math.abs(s.getBlue() - b);
+
+        float dominant;
+        //choose largest
+        if (rChange >= gChange && rChange >= bChange){
+            dominant = rChange;
+        } else if (gChange >= rChange && gChange >= bChange){
+            dominant = gChange;
+        } else {
+            dominant = bChange;
+        }
+
+        return new Double(dominant * TIME_PER_RGB_VAL).floatValue();
+    }
+
+    /**
      * Fades from the current led state to another.
      * @param s The Led State to fade to
-     * @param duration The duration of the fade
+     * @param duration The duration of the fade in seconds
      * @param controller The controller requesting this fade
      * @throws TapeInUseException If the tape is currently controlled by another effect, this will be thrown
      */
@@ -296,7 +331,7 @@ public class TapeControl implements ITapeControl {
                     }
 
                     try {
-                        Thread.sleep(40);
+                        Thread.sleep(FADE_UPDATE_PERIOD);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -332,6 +367,11 @@ public class TapeControl implements ITapeControl {
     @Override
     public void fadeToBlack(float duration, IEffect controller) throws TapeInUseException {
         fadeTo(LedState.BLACK, duration, controller);
+    }
+
+    @Override
+    public void smartFadeToBlack(IEffect controller) throws TapeInUseException {
+        fadeToBlack(calculateSmartDuration(LedState.BLACK), controller);
     }
 
     /**

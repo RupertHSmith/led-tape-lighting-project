@@ -14,7 +14,7 @@ public class WarmWhite implements Runnable, IEffect {
     public WarmWhite(ITapeControl tapeControl, int intensity, int transition) throws InvalidTransitionTimeException {
         if (transition < 0 | transition > 10)
             throw new InvalidTransitionTimeException();
-        this.colour = new LedState(255,150,20);
+        this.colour = new LedState(255,150,40);
         this.tapeControl = tapeControl;
         this.transition = transition;
         this.intensity = intensity;
@@ -44,7 +44,7 @@ public class WarmWhite implements Runnable, IEffect {
     public void run() {
         //Run transition
         try {
-            tapeControl.fadeTo(colour, transition, this);
+            tapeControl.smartFade(colour, this);
         } catch (TapeInUseException e){
             System.err.println(e.getMessage());
         }
