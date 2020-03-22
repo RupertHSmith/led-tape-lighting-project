@@ -186,7 +186,6 @@ public class TapeControl implements ITapeControl {
                 byteBuffer.putInt(_PI_CMD_PWM);
                 byteBuffer.putInt(_PIN_RED);
                 byteBuffer.putInt(pwmTranslation[newR]);
-                System.out.println("Red pwm trans " + pwmTranslation[newR]);
                 byteBuffer.putInt(0);
 
                 bytes = byteBuffer.array();
