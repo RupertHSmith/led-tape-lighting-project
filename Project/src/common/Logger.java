@@ -1,8 +1,6 @@
 package common;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.FileAlreadyExistsException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,25 +26,52 @@ public class Logger {
         return dtf.format(now);
     }
 
-    public synchronized void writeMessage(Object fromClass, String errorMessage) throws IOException {
+    public synchronized void writeMessage(Object fromClass, String errorMessage)  {
         String tag =  "[" + getCurrentTime() + "] Message from class '" + fromClass.getClass().getSimpleName() + "':\n";
         String message = tag + errorMessage + "\n";
 
         if (!fileName.equals("")){
-            FileWriter fileWriter = new FileWriter(fileName);
-            fileWriter.write(message);
-            fileWriter.close();
+            try {
+                FileWriter fileWriter = new FileWriter(fileName);
+                fileWriter.write(message);
+                fileWriter.close();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
         }
     }
 
-    public synchronized void writeError(Object fromClass, String errorMessage) throws IOException {
+    public synchronized void writeError(Object fromClass, String errorMessage)  {
         String tag =  "[" + getCurrentTime() + "] Error message from class '" + fromClass.getClass().getSimpleName() + "':\n";
         String message = tag + errorMessage + "\n";
 
         if (!fileName.equals("")){
-            FileWriter fileWriter = new FileWriter(fileName);
-            fileWriter.write(message);
-            fileWriter.close();
+            try{
+                FileWriter fileWriter = new FileWriter(fileName);
+                fileWriter.write(message);
+                fileWriter.close();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public synchronized void writeError(Object fromClass, Exception e)  {
+        StringWriter errors = new StringWriter();
+        e.printStackTrace(new PrintWriter(errors));
+        String errorMessage = errors.toString();
+
+        String tag =  "[" + getCurrentTime() + "] Error message from class '" + fromClass.getClass().getSimpleName() + "':\n";
+        String message = tag + errorMessage + "\n";
+
+        if (!fileName.equals("")){
+            try {
+                FileWriter fileWriter = new FileWriter(fileName);
+                fileWriter.write(message);
+                fileWriter.close();
+            } catch (IOException ex){
+                ex.printStackTrace();
+            }
         }
     }
 }
