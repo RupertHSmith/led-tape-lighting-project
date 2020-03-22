@@ -12,6 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class RGBTapeController implements Runnable, IAlarmController, DatabaseListener {
+    private Logger logger;
     public static final int TRANSITION_DURATION = 2;
 
     private DeviceUID duid;
@@ -32,6 +33,17 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
 
     public RGBTapeController (){
             try {
+                System.out.println("Beginning logging...");
+                boolean loggerSet = false;
+                while (!loggerSet){
+                    try {
+                        logger = new Logger();
+                        loggerSet = true;
+                    } catch (IOException e){
+                        System.out.println("Logging failed:");
+                        e.printStackTrace();
+                    }
+                }
                 DatabaseHandler handler = new DatabaseHandler(this);
                 effectsManager = new EffectsManager(new TapeControl(), this);
                 new Thread(this).start();
@@ -40,7 +52,7 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e){
-                        System.err.println(e.getCause());
+                        logger.writeError(this, e);
                     }
                 }
 
@@ -72,7 +84,7 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
         try {
             deviceStateQueue.put(deviceState);
         } catch (InterruptedException e){
-            e.printStackTrace();
+            logger.writeError(this,e);
         }
     }
 
@@ -88,7 +100,7 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
                 //Wait for an item in the queue to become available
                 effectsManager.processDeviceUpdate(deviceStateQueue.take());
             } catch (InterruptedException e){
-                e.printStackTrace();
+                logger.writeError(this,e);
             }
         }
     }
