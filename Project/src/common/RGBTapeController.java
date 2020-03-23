@@ -28,37 +28,39 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
     private IAlarmListener alarmListener;
 
     public static void main(String[] args){
-        RGBTapeController rgbTapeController = new RGBTapeController();
+        new RGBTapeController();
     }
 
     public RGBTapeController (){
         System.out.println("Beginning logging...");
-        boolean loggerSet = false;
-        while (!loggerSet){
+
             try {
                 logger = new Logger();
-                loggerSet = true;
+                logger.writeMessage( this,"Logging began...");
+
+                try {
+                    DatabaseHandler handler = new DatabaseHandler(this, logger);
+                    effectsManager = new EffectsManager(new TapeControl(logger), this, logger);
+                    new Thread(this).start();
+
+                    while (true){
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e){
+                            logger.writeError(this, e);
+                        }
+                    }
+
+                } catch (IOException e){
+                    logger.writeError(RGBTapeController.class.getSimpleName(),e);
+                }
             } catch (IOException e){
                 System.out.println("Logging failed:");
-                e.printStackTrace();
-            }
-        }
-        try {
-            DatabaseHandler handler = new DatabaseHandler(this, logger);
-            effectsManager = new EffectsManager(new TapeControl(logger), this, logger);
-            new Thread(this).start();
-
-            while (true){
+                // e.printStackTrace();
                 try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e){
-                    logger.writeError(this, e);
-                }
+                    Thread.sleep(3000);
+                } catch (Exception e1) {}
             }
-
-        } catch (IOException e){
-            logger.writeError(this,e);
-        }
     }
 
     private synchronized List<Alarm> getLocalAlarms(){

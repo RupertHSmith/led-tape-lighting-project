@@ -11,7 +11,8 @@ public class Logger {
     public Logger() throws IOException {
         String currentDateTime = getCurrentTime();
 
-        String fileName = "java-log-" + currentDateTime + ".log";
+        System.out.println(currentDateTime);
+        fileName = "java-log-" + currentDateTime + ".log";
         File logFile = new File(fileName);
         if(logFile.createNewFile()){
             System.out.println("Log file created");
@@ -21,7 +22,7 @@ public class Logger {
     }
 
     private String getCurrentTime(){
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy_HH-mm-ss");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm-ss");
         LocalDateTime now = LocalDateTime.now();
         return dtf.format(now);
     }
@@ -56,6 +57,7 @@ public class Logger {
         }
     }
 
+
     public synchronized void writeError(Object fromClass, Exception e)  {
         StringWriter errors = new StringWriter();
         e.printStackTrace(new PrintWriter(errors));
@@ -74,4 +76,6 @@ public class Logger {
             }
         }
     }
+
+
 }
