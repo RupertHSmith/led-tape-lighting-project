@@ -21,7 +21,7 @@ public class Logger {
     }
 
     private String getCurrentTime(){
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy-HH:mm:ss");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy_HH-mm-ss");
         LocalDateTime now = LocalDateTime.now();
         return dtf.format(now);
     }
