@@ -17,10 +17,12 @@ public class EffectsManager {
     private ITapeControl tc;
     private IEffect currentEffect;
     private IAlarmController alarmController;
+    private Logger logger;
 
-    public EffectsManager (ITapeControl tc, IAlarmController alarmController){
+    public EffectsManager (ITapeControl tc, IAlarmController alarmController, Logger logger){
         this.tc = tc;
         this.alarmController = alarmController;
+        this.logger = logger;
     }
 
     private void changeEffect(IEffect effect){
@@ -40,7 +42,7 @@ public class EffectsManager {
                     currentEffect.start();
                 }
             } catch (TapeInUseException e){
-                e.printStackTrace();
+                logger.writeError(this,e);
             }
     }
 
@@ -149,10 +151,10 @@ public class EffectsManager {
                                     changeEffect(new StaticEffect(tc, ledState, deviceState.getIntensity(), 2));
                                 }
                             } catch (InvalidTransitionTimeException e) {
-                                e.printStackTrace();
+                                logger.writeError(this,e);
                             }
                         } catch (LedState.InvalidRGBException e) {
-                            e.printStackTrace();
+                            logger.writeError(this,e);
                         }
                         break;
                     case BREATHING:
@@ -163,10 +165,10 @@ public class EffectsManager {
                                     changeEffect(new Breathing(tc, ledStateBreathing, deviceState.getSpeed(), deviceState.getIntensity(), 2));
                                 }
                             } catch (TapeInUseException | InvalidTransitionTimeException e) {
-                                e.printStackTrace();
+                                logger.writeError(this,e);
                             }
                         } catch (LedState.InvalidRGBException e) {
-                            e.printStackTrace();
+                            logger.writeError(this,e);
                         }
                         break;
                     case SPECTRUM_CYCLING:
@@ -175,7 +177,7 @@ public class EffectsManager {
                             if (!checkCurrentEffectSpectrum(spectrumSpeed, deviceState.getIntensity()))
                                 changeEffect(new SpectrumCycling(tc, spectrumSpeed, deviceState.getIntensity(), 2));
                         } catch (TapeInUseException | InvalidTransitionTimeException e) {
-                            e.printStackTrace();
+                            logger.writeError(this,e);
                         }
                         break;
 
@@ -191,7 +193,7 @@ public class EffectsManager {
                             }
 
                         } catch (InvalidTransitionTimeException e) {
-                            e.printStackTrace();
+                            logger.writeError(this,e);
                         }
 
                         break;
@@ -203,7 +205,7 @@ public class EffectsManager {
                             if (!checkCurrentEffectStrobe(ledStateStrobe, strobeSpeed, deviceState.getIntensity()))
                                 changeEffect(new Strobe(tc, ledStateStrobe, strobeSpeed, deviceState.getIntensity(), 2));
                         } catch (TapeInUseException | LedState.InvalidRGBException | InvalidTransitionTimeException e) {
-                            e.printStackTrace();
+                            logger.writeError(this,e);
                         }
                         break;
 
@@ -212,7 +214,7 @@ public class EffectsManager {
                             if(!checkCurrentEffectCoolWhite(deviceState.getIntensity()))
                                 changeEffect(new CoolWhite(tc, deviceState.getIntensity(),2));
                         } catch ( InvalidTransitionTimeException e){
-                            e.printStackTrace();
+                            logger.writeError(this,e);
                         }
                         break;
                     case WARM_WHITE:
@@ -220,20 +222,20 @@ public class EffectsManager {
                             if(!checkCurrentEffectWarmWhite(deviceState.getIntensity()))
                                 changeEffect(new WarmWhite(tc, deviceState.getIntensity(),2));
                         } catch ( InvalidTransitionTimeException e){
-                            e.printStackTrace();
+                            logger.writeError(this,e);
                         }
                         break;
                     default:
-                        System.err.println("Invalid effect type...");
+                        logger.writeError(this, "Invalid effect type...");
                         break;
                 }
-                System.out.println(deviceState.getType());
+                logger.writeMessage(this,deviceState.getType());
             }
 
 
 
         } catch (ClassCastException e){
-            e.printStackTrace();
+            logger.writeError(this,e);
         }
     }
 }
