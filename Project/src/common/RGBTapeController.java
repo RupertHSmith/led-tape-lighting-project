@@ -47,7 +47,7 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
 
                 try {
                     DatabaseHandler handler = new DatabaseHandler(this, logger);
-                    effectsManager = new EffectsManager(new TapeControl(logger), this, logger);
+                    effectsManager = new EffectsManager(new TapeControl(logger), duid, this, logger);
                     new Thread(this).start();
 
                     while (true){

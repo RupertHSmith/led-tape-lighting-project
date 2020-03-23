@@ -29,7 +29,8 @@ public class EffectsManager implements TcpDirectFinishedListener{
 
     private IEffect effectBeforeTcpDirect;
 
-    public EffectsManager (ITapeControl tc, IAlarmController alarmController, Logger logger){
+    public EffectsManager (ITapeControl tc, DeviceUID duid, IAlarmController alarmController, Logger logger){
+        deviceUID = duid;
         this.tc = tc;
         this.alarmController = alarmController;
         this.logger = logger;
