@@ -39,16 +39,19 @@ public class TapeControl implements ITapeControl {
 
     private IEffect controller;
 
+    private Logger logger;
+
     boolean halted = false;
     boolean transitioning = false;
 
-    public TapeControl(){
+    public TapeControl(Logger logger){
+        this.logger = logger;
         p = Runtime.getRuntime();
         try {
             p.exec("sudo pigpiod");
             p.exec("sudo pigs p 17 0 p 22 0 p 24 0");
         } catch (Exception e){
-            e.printStackTrace();
+            logger.writeError(this,e);
         }
 
         r = 0;
@@ -66,7 +69,7 @@ public class TapeControl implements ITapeControl {
             //Init pins
             initialisePinParameters();
         } catch (IOException e){
-            e.printStackTrace();
+            logger.writeError(this,e);
         }
 
     }
@@ -221,7 +224,7 @@ public class TapeControl implements ITapeControl {
                 gpioDataOut.write(bytes);
             }
         } catch (IOException e){
-            e.printStackTrace();
+            logger.writeError(this,e);
         }
         //System.out.println(r + ", " + g + ", "+ b);
 
@@ -297,7 +300,7 @@ public class TapeControl implements ITapeControl {
                     try {
                         Thread.sleep(40);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        logger.writeError(this,e);
                     }
                 }
                 if (halted) {
@@ -346,7 +349,7 @@ public class TapeControl implements ITapeControl {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e){
-                e.printStackTrace();
+                logger.writeError(this,e);
             }
         }
         releaseControl();
