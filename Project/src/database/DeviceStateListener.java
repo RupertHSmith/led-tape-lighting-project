@@ -3,6 +3,7 @@ package database;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import common.DeviceState;
+import common.Logger;
 import effects.CustomEffect;
 
 import java.io.BufferedReader;
@@ -12,21 +13,23 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class DeviceStateListener implements Runnable{
+    private Logger logger;
     private DatabaseListener databaseListener;
 
     private ServerSocket serverSocket;
     private Socket client;
     private BufferedReader in;
 
-    public DeviceStateListener(DatabaseListener databaseListener) throws IOException {
-            this.databaseListener = databaseListener;
+    public DeviceStateListener(DatabaseListener databaseListener, Logger logger) throws IOException {
+        this.logger = logger;
+        this.databaseListener = databaseListener;
 
-            serverSocket = new ServerSocket(5555);
-            System.out.println("DeviceStateListener: Waiting for connection on port 5555");
+        serverSocket = new ServerSocket(5555);
+        logger.writeMessage(this,"DeviceStateListener: Waiting for connection on port 5555");
 
-            Socket client = serverSocket.accept();
-            System.out.println("Connection received on port 5555");
-            in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        Socket client = serverSocket.accept();
+        logger.writeMessage(this,"Connection received on port 5555");
+        in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
     }
 
@@ -46,7 +49,7 @@ public class DeviceStateListener implements Runnable{
             try {
                 String inString = in.readLine();
                 int noPipes = countOccurences(inString);
-                System.out.println(getClass().getSimpleName() + ": Device State Received");
+                logger.writeMessage(this, "Device state received");
 
                 //Only attempt to split if properly formatted
                 if (noPipes == 1) {
@@ -62,15 +65,15 @@ public class DeviceStateListener implements Runnable{
                         databaseListener.onDeviceStateReceived(d);
                     }
                 } else {
-                    System.err.println(getClass().getSimpleName() + ": Error. Input json incorrectly formatted");
+                    logger.writeError(this, "Input json incorrectly formatted");
                 }
 
             } catch (IOException | JsonSyntaxException e){
-                e.printStackTrace();
+                logger.writeError(this, e);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e2){
-                    e2.printStackTrace();
+                    logger.writeError(this, e2);
                 }
             }
         }

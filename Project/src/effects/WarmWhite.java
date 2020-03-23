@@ -2,6 +2,7 @@ package effects;
 
 import common.ITapeControl;
 import common.LedState;
+import common.Logger;
 import common.TapeInUseException;
 
 public class WarmWhite implements Runnable, IEffect {
@@ -9,9 +10,11 @@ public class WarmWhite implements Runnable, IEffect {
     private int transition;
     private int intensity;
     private LedState colour;
+    private Logger logger;
 
 
-    public WarmWhite(ITapeControl tapeControl, int intensity, int transition) throws InvalidTransitionTimeException {
+    public WarmWhite(ITapeControl tapeControl, int intensity, int transition, Logger logger) throws InvalidTransitionTimeException {
+        this.logger = logger;
         if (transition < 0 | transition > 10)
             throw new InvalidTransitionTimeException();
         this.colour = new LedState(255,150,40);
@@ -46,7 +49,7 @@ public class WarmWhite implements Runnable, IEffect {
         try {
             tapeControl.smartFade(colour, this);
         } catch (TapeInUseException e){
-            System.err.println(e.getMessage());
+            logger.writeError(this,e);
         }
     }
 }

@@ -12,6 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class RGBTapeController implements Runnable, IAlarmController, DatabaseListener {
+    private Logger logger;
     public static final int TRANSITION_DURATION = 2;
 
     private DeviceUID duid;
@@ -27,24 +28,34 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
     private IAlarmListener alarmListener;
 
     public static void main(String[] args){
-        RGBTapeController rgbTapeController = new RGBTapeController();
+        new RGBTapeController();
     }
 
     public RGBTapeController (){
+        System.out.println("Beginning logging...");
+
             try {
-                DatabaseHandler handler = new DatabaseHandler(this);
-                effectsManager = new EffectsManager(new TapeControl(), this);
-                new Thread(this).start();
+                logger = new Logger();
+                logger.writeMessage( this,"Logging began...");
 
-                while (true){
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e){
-                        System.err.println(e.getCause());
+                try {
+                    DatabaseHandler handler = new DatabaseHandler(this, logger);
+                    effectsManager = new EffectsManager(new TapeControl(logger), this, logger);
+                    new Thread(this).start();
+
+                    while (true){
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e){
+                            logger.writeError(this, e);
+                        }
                     }
-                }
 
+                } catch (IOException e){
+                    logger.writeError(RGBTapeController.class.getSimpleName(),e);
+                }
             } catch (IOException e){
+                System.out.println("Logging failed:");
                 e.printStackTrace();
             }
     }
@@ -72,7 +83,7 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
         try {
             deviceStateQueue.put(deviceState);
         } catch (InterruptedException e){
-            e.printStackTrace();
+            logger.writeError(this,e);
         }
     }
 
@@ -88,7 +99,7 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
                 //Wait for an item in the queue to become available
                 effectsManager.processDeviceUpdate(deviceStateQueue.take());
             } catch (InterruptedException e){
-                e.printStackTrace();
+                logger.writeError(this,e);
             }
         }
     }

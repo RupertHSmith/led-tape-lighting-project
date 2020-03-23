@@ -9,15 +9,17 @@ public class StaticEffect implements IEffect, Runnable {
     private int transition;
     private LedState colour;
     private int intensity;
+    private Logger logger;
 
     //Do not directly mutate this as need synchronized access.
     private boolean transitioning;
 
-    public StaticEffect(ITapeControl tapeControl, ArrayList<Long> colour, int intensity, int transition) throws InvalidTransitionTimeException {
-        this(tapeControl, new LedState(colour.get(0), colour.get(1), colour.get(2)), intensity, transition);
+    public StaticEffect(ITapeControl tapeControl, ArrayList<Long> colour, int intensity, int transition, Logger logger) throws InvalidTransitionTimeException {
+        this(tapeControl, new LedState(colour.get(0), colour.get(1), colour.get(2)), intensity, transition, logger);
     }
 
-    public StaticEffect(ITapeControl tapeControl, LedState staticColour, int intensity, int transition) throws InvalidTransitionTimeException{
+    public StaticEffect(ITapeControl tapeControl, LedState staticColour, int intensity, int transition, Logger logger) throws InvalidTransitionTimeException{
+        this.logger = logger;
         if (transition < 0 | transition > 10)
             throw new InvalidTransitionTimeException();
 
@@ -69,7 +71,7 @@ public class StaticEffect implements IEffect, Runnable {
         try {
             tapeControl.smartFade(colour, this);
         } catch (TapeInUseException e){
-            System.err.println(e.getMessage());
+            logger.writeError(this,e);
         }
     }
 }

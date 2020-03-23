@@ -2,6 +2,7 @@ package database;
 
 import com.google.gson.Gson;
 import common.Alarm;
+import common.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,14 +15,16 @@ public class AlarmListener implements  Runnable{
     private ServerSocket serverSocket;
     private BufferedReader in;
     private DatabaseListener databaseListener;
+    private Logger logger;
 
-    public AlarmListener(DatabaseListener databaseListener)throws IOException {
+    public AlarmListener(DatabaseListener databaseListener, Logger logger)throws IOException {
+        this.logger = logger;
         this.databaseListener = databaseListener;
 
         serverSocket = new ServerSocket(5556);
-        System.out.println("DeviceStateListener: Waiting for connection on port 5556");
+        logger.writeMessage(this, "DeviceStateListener: Waiting for connection on port 5556");
         Socket client = serverSocket.accept();
-        System.out.println("Connection received on port 5556");
+        logger.writeMessage(this,"Connection received on port 5556");
         in = new BufferedReader(new InputStreamReader(client.getInputStream()));
     }
 
@@ -43,7 +46,7 @@ public class AlarmListener implements  Runnable{
                 int noPipes = countOccurences(inString);
                 ArrayList<Alarm> alarmList = new ArrayList<>();
 
-                System.out.println(getClass().getSimpleName() + ": Alarm State Received");
+                logger.writeMessage(this, "Alarm State Received");
 
                 if (noPipes >= 1){
                     String[] splitString = inString.split("\\|");
@@ -55,15 +58,15 @@ public class AlarmListener implements  Runnable{
                     }
                 } else {
                     //either malformed json or empty
-                    System.out.println(getClass().getSimpleName() + ": no alarms received.");
+                    logger.writeMessage(this, "no alarms received.");
                 }
                 databaseListener.onAlarmStateReceived(alarmList);
             } catch (IOException e){
-                e.printStackTrace();
+                logger.writeError(this, e);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e2){
-                    e2.printStackTrace();
+                    logger.writeError(this,e2);
                 }
             }
         }

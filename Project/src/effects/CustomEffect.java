@@ -4,6 +4,7 @@ package effects;
 
 import common.ITapeControl;
 import common.LedState;
+import common.Logger;
 import common.TapeInUseException;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class CustomEffect implements IEffect, Runnable{
     private Long speed;
     private TreeMap<String, ArrayList<Long>> stops;
     private int intensity;
-
+    private Logger logger;
 
 
     public HashMap<String, ArrayList<Long>> getStops() {
@@ -73,6 +74,10 @@ public class CustomEffect implements IEffect, Runnable{
         }
 
         stops = newStops;
+    }
+
+    public void setLogger(Logger logger){
+        this.logger = logger;
     }
 
     public CustomEffect(){}
@@ -143,19 +148,19 @@ public class CustomEffect implements IEffect, Runnable{
 
     private boolean test(){
         if (stops == null) {
-            System.err.println("Stops invalid.");
+            logger.writeError(this, "Stops invalid");
             return false;
         }
 
         for (String stop : stops.keySet()) {
             if (new Long(stop).compareTo(0L) < 0 | new Long(stop).compareTo(100L) >= 0) {
-                System.err.println("Stop '" + stop + "' out of range.");
+                logger.writeError(this,"Stop '" + stop + "' out of range.");
                 return false;
             }
             try {
                 new LedState(stops.get(stop));
             } catch (LedState.InvalidRGBException e){
-                e.printStackTrace();
+                logger.writeError(this,e);
                 return false;
             }
         }
@@ -226,8 +231,8 @@ public class CustomEffect implements IEffect, Runnable{
 
 
         } catch (TapeInUseException | LedState.InvalidRGBException e){
-            e.printStackTrace();
-            System.err.println("Effect terminating.");
+            logger.writeError(this,e);
+            logger.writeError(this, "Effect terminating...");
             terminate();
         }
     }

@@ -2,17 +2,19 @@ package effects;
 
 import common.ITapeControl;
 import common.LedState;
+import common.Logger;
 import common.TapeInUseException;
 
 import java.util.ArrayList;
 
 public class SpectrumCycling implements IEffect, Runnable{
-    ITapeControl tapeControl;
-    int transition;
-    int speed;
-    float duration;
-    boolean terminated;
-    int intensity;
+    private ITapeControl tapeControl;
+    private int transition;
+    private int speed;
+    private float duration;
+    private boolean terminated;
+    private int intensity;
+    private Logger logger;
 
     private LedState STAGE_1 = new LedState(255,0,0);
     private LedState STAGE_2 = new LedState(255,255,0);
@@ -21,7 +23,8 @@ public class SpectrumCycling implements IEffect, Runnable{
     private LedState STAGE_5 = new LedState(0,0,255);
     private LedState STAGE_6 = new LedState(255,0,255);
 
-    public SpectrumCycling(ITapeControl tapeControl, int speed , int intensity, int transition) throws InvalidTransitionTimeException, TapeInUseException{
+    public SpectrumCycling(ITapeControl tapeControl, int speed , int intensity, int transition, Logger logger) throws InvalidTransitionTimeException, TapeInUseException{
+        this.logger = logger;
         if (transition < 0 | transition > 10)
             throw new InvalidTransitionTimeException();
 
@@ -105,7 +108,7 @@ public class SpectrumCycling implements IEffect, Runnable{
                     tapeControl.fadeTo(STAGE_1,  duration, this);
             }
         } catch (TapeInUseException e){
-            e.printStackTrace();
+            logger.writeError(this,e);
         }
 
     }
