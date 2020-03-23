@@ -39,6 +39,13 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
                 logger.writeMessage( this,"Logging began...");
 
                 try {
+                    duid = new DeviceUID("rupertrgbtape","SMD5050 RGB Tape 5m");
+
+                } catch (DeviceUID.InvalidUIDException e){
+                    logger.writeError(this,e);
+                }
+
+                try {
                     DatabaseHandler handler = new DatabaseHandler(this, logger);
                     effectsManager = new EffectsManager(new TapeControl(logger), this, logger);
                     new Thread(this).start();
