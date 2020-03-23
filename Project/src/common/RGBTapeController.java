@@ -56,10 +56,7 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
                 }
             } catch (IOException e){
                 System.out.println("Logging failed:");
-                // e.printStackTrace();
-                try {
-                    Thread.sleep(3000);
-                } catch (Exception e1) {}
+                e.printStackTrace();
             }
     }
 
