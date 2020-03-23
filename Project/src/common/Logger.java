@@ -2,23 +2,29 @@ package common;
 
 import java.io.*;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Logger {
-    private String fileName;
+    private PrintWriter printWriter;
 
     public Logger() throws IOException {
         String currentDateTime = getCurrentTime();
 
         System.out.println(currentDateTime);
-        fileName = "java-log-" + currentDateTime + ".log";
-        File logFile = new File(fileName);
-        if(logFile.createNewFile()){
-            System.out.println("Log file created");
-        } else {
-            throw new IOException("File exists or could not be created");
-        }
+        String fileName = "/home/pi/RGBProject/java-logs/java-log-" + currentDateTime + ".log";
+
+        Path path = Paths.get(fileName);
+        Files.createDirectories(path.getParent());
+        Files.createDirectories(path.getParent());
+        Files.createFile(path);
+
+        FileWriter fileWriter = new FileWriter(fileName, true);
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+        printWriter = new PrintWriter(bufferedWriter);
     }
 
     private String getCurrentTime(){
@@ -28,33 +34,15 @@ public class Logger {
     }
 
     public synchronized void writeMessage(Object fromClass, String errorMessage)  {
-        String tag =  "[" + getCurrentTime() + "] Message from class '" + fromClass.getClass().getSimpleName() + "':\n";
-        String message = tag + errorMessage + "\n";
-
-        if (!fileName.equals("")){
-            try {
-                FileWriter fileWriter = new FileWriter(fileName);
-                fileWriter.write(message);
-                fileWriter.close();
-            } catch (IOException e){
-                e.printStackTrace();
-            }
-        }
+        String tag =  "[" + getCurrentTime() + "] Message from class '" + fromClass.getClass().getSimpleName() + "': ";
+        String message = tag + errorMessage;
+        printWriter.println(message);
     }
 
     public synchronized void writeError(Object fromClass, String errorMessage)  {
-        String tag =  "[" + getCurrentTime() + "] Error message from class '" + fromClass.getClass().getSimpleName() + "':\n";
-        String message = tag + errorMessage + "\n";
-
-        if (!fileName.equals("")){
-            try{
-                FileWriter fileWriter = new FileWriter(fileName);
-                fileWriter.write(message);
-                fileWriter.close();
-            } catch (IOException e){
-                e.printStackTrace();
-            }
-        }
+        String tag =  "[" + getCurrentTime() + "] Error message from class '" + fromClass.getClass().getSimpleName() + "': ";
+        String message = tag + errorMessage;
+        printWriter.println(message);
     }
 
 
@@ -64,17 +52,8 @@ public class Logger {
         String errorMessage = errors.toString();
 
         String tag =  "[" + getCurrentTime() + "] Error message from class '" + fromClass.getClass().getSimpleName() + "':\n";
-        String message = tag + errorMessage + "\n";
-
-        if (!fileName.equals("")){
-            try {
-                FileWriter fileWriter = new FileWriter(fileName);
-                fileWriter.write(message);
-                fileWriter.close();
-            } catch (IOException ex){
-                ex.printStackTrace();
-            }
-        }
+        String message = tag + errorMessage;
+        printWriter.println(message);
     }
 
 
