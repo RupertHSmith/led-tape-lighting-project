@@ -194,7 +194,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
         logger.writeMessage(this,"Switching to TCP direct mode");
         effectBeforeTcpDirect = currentEffect;
         String ipAddress = inetAddress.getHostAddress();
-        changeEffect(new TcpControlEffect(tc,ipAddress,logger));
+        changeEffect(new TcpControlEffect(tc, this,ipAddress,logger));
     }
 
     /**

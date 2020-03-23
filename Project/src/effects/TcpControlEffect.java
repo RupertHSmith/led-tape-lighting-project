@@ -14,12 +14,14 @@ public class TcpControlEffect implements IEffect, Runnable{
     private BufferedInputStream dataIn;
     private Socket socket;
     private boolean terminated;
+    private TcpDirectFinishedListener tcpDirectFinishedListener;
 
 
-    public TcpControlEffect(ITapeControl tapeControl, String ipAddress, Logger logger){
+    public TcpControlEffect(ITapeControl tapeControl, TcpDirectFinishedListener tcpDirectFinishedListener, String ipAddress, Logger logger){
         tc = tapeControl;
         this.ipAddress = ipAddress;
         this.logger = logger;
+        this.tcpDirectFinishedListener = tcpDirectFinishedListener;
     }
 
     @Override
@@ -35,6 +37,7 @@ public class TcpControlEffect implements IEffect, Runnable{
                 socket = new Socket(ipAddress, TCP_CONTROL_PORT);
                 dataIn = new BufferedInputStream(socket.getInputStream());
                 notSet = false;
+                logger.writeMessage(this, "TCP Direct socket opened");
                 new Thread(this).start();
             } catch (Exception e) {
                 logger.writeError(this, e);
@@ -69,6 +72,7 @@ public class TcpControlEffect implements IEffect, Runnable{
         } catch (IOException e) {
             logger.writeError(this, e);
         }
+        tcpDirectFinishedListener.tcpDirectFinished();
         return tc.getColour();
     }
 
@@ -84,7 +88,6 @@ public class TcpControlEffect implements IEffect, Runnable{
             tc.smartFadeToBlack(this);
             while (!isTerminated()){
                 //Listen to TCP connection...
-                try {
                     // Packet structure...
 
                     /* |----------|-------|-------|-------|-------|  */
@@ -108,13 +111,12 @@ public class TcpControlEffect implements IEffect, Runnable{
                     } else {
                         logger.writeError(this, "Invalid TCP message");
                     }
-                } catch (IOException e1){
-                    logger.writeError(this,e1);
-                }
+
 
             }
-        } catch (TapeInUseException e){
+        } catch (TapeInUseException | IOException e){
             logger.writeError(this,e);
+            tcpDirectFinishedListener.tcpDirectFinished();
         }
     }
 }
