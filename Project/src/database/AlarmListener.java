@@ -46,7 +46,7 @@ public class AlarmListener implements  Runnable{
                 int noPipes = countOccurences(inString);
                 ArrayList<Alarm> alarmList = new ArrayList<>();
 
-                logger.writeMessage(this, getClass().getSimpleName() + ": Alarm State Received");
+                logger.writeMessage(this, "Alarm State Received");
 
                 if (noPipes >= 1){
                     String[] splitString = inString.split("\\|");
@@ -58,8 +58,7 @@ public class AlarmListener implements  Runnable{
                     }
                 } else {
                     //either malformed json or empty
-                    System.out.println(getClass().getSimpleName() + ": no alarms received.");
-                    logger.writeMessage(this, getClass().getSimpleName() + ": no alarms received.");
+                    logger.writeMessage(this, "no alarms received.");
                 }
                 databaseListener.onAlarmStateReceived(alarmList);
             } catch (IOException e){

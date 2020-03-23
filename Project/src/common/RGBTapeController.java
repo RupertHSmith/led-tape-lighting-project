@@ -32,33 +32,33 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
     }
 
     public RGBTapeController (){
+        System.out.println("Beginning logging...");
+        boolean loggerSet = false;
+        while (!loggerSet){
             try {
-                System.out.println("Beginning logging...");
-                boolean loggerSet = false;
-                while (!loggerSet){
-                    try {
-                        logger = new Logger();
-                        loggerSet = true;
-                    } catch (IOException e){
-                        System.out.println("Logging failed:");
-                        e.printStackTrace();
-                    }
-                }
-                DatabaseHandler handler = new DatabaseHandler(this);
-                effectsManager = new EffectsManager(new TapeControl(), this);
-                new Thread(this).start();
-
-                while (true){
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e){
-                        logger.writeError(this, e);
-                    }
-                }
-
+                logger = new Logger();
+                loggerSet = true;
             } catch (IOException e){
+                System.out.println("Logging failed:");
                 e.printStackTrace();
             }
+        }
+        try {
+            DatabaseHandler handler = new DatabaseHandler(this, logger);
+            effectsManager = new EffectsManager(new TapeControl(logger), this, logger);
+            new Thread(this).start();
+
+            while (true){
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e){
+                    logger.writeError(this, e);
+                }
+            }
+
+        } catch (IOException e){
+            logger.writeError(this,e);
+        }
     }
 
     private synchronized List<Alarm> getLocalAlarms(){
