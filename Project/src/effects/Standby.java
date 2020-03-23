@@ -1,6 +1,7 @@
 package effects;
 
 import common.*;
+import sun.rmi.runtime.Log;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -19,6 +20,7 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
     private ITapeControl tc;
     private int transition;
     private IAlarmController alarmController;
+    private Logger logger;
 
     private boolean terminated;
 
@@ -27,7 +29,8 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
 
     private boolean alarmComplete;
 
-    public Standby(ITapeControl tc, IAlarmController alarmController, int transition, List<Alarm> alarms){
+    public Standby(ITapeControl tc, IAlarmController alarmController, int transition, List<Alarm> alarms, Logger logger){
+        this.logger = logger;
         this.tc = tc;
         this.transition = transition;
         this.alarmController = alarmController;
@@ -117,14 +120,14 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
             if(activeAlarm != null){
                 if(!checkAlarmStillActive(activeAlarm)){
                     //need to cancel the currently fading alarm...
-                    System.out.println("Cancelling running alarm");
+                    logger.writeMessage(this,"Cancelling running alarm");
                     tc.halt();
                     setAlarmCancelled(true);
                     try {
                         tc.setController(this);
                         tc.fadeToBlack(1,this);
                     } catch (TapeInUseException e){
-                        e.printStackTrace();
+                        logger.writeError(this,e);
                     }
 
                     setAlarmComplete(false);
@@ -166,13 +169,13 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
 
     private void initiateAlarm(Alarm a){
         try {
-            System.out.println("Beginning alarm fade up");
+            logger.writeMessage(this, "Beginning alarm fade up");
             setActiveAlarm(a);
             tc.fadeTo(new LedState(a.getColour()), a.getDuration() * 60, this);
             setActiveAlarm(null);
             setAlarmComplete(true);
         } catch (TapeInUseException | LedState.InvalidRGBException e){
-            e.printStackTrace();
+            logger.writeError(this,e);
         }
     }
 
@@ -208,7 +211,7 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
                         //Low frequency to keep pi cool
                         Thread.sleep(5000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        logger.writeError(this,e);
                     }
 
                 } else {
@@ -216,7 +219,7 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
                         //Low frequency to keep pi cool
                         Thread.sleep(5000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        logger.writeError(this,e);
                     }
                 }
             }
@@ -226,7 +229,7 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
             //}
 
         } catch (TapeInUseException e) {
-            e.printStackTrace();
+            logger.writeError(this,e);
         }
     }
 

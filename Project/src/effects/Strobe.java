@@ -6,20 +6,22 @@ import java.util.ArrayList;
 
 public class Strobe implements IEffect, Runnable {
 
-    ITapeControl tapeControl;
-    int transition;
-    LedState colour;
-    int speed;
-    boolean terminated;
-    int intensity;
-    float timeBetweenFlash;
+    private ITapeControl tapeControl;
+    private int transition;
+    private LedState colour;
+    private int speed;
+    private boolean terminated;
+    private int intensity;
+    private float timeBetweenFlash;
+    private Logger logger;
 
 
-    public Strobe(ITapeControl tapeControl, ArrayList<Long> colour, int speed, int intensity, int transition) throws InvalidTransitionTimeException, TapeInUseException {
-        this(tapeControl, new LedState(colour.get(0).intValue(), colour.get(1).intValue(), colour.get(2).intValue()), speed, intensity, transition);
+    public Strobe(ITapeControl tapeControl, ArrayList<Long> colour, int speed, int intensity, int transition, Logger logger) throws InvalidTransitionTimeException, TapeInUseException {
+        this(tapeControl, new LedState(colour.get(0).intValue(), colour.get(1).intValue(), colour.get(2).intValue()), speed, intensity, transition, logger);
     }
 
-    public Strobe(ITapeControl tapeControl, LedState colour, int speed, int intensity, int transition) throws InvalidTransitionTimeException, TapeInUseException {
+    public Strobe(ITapeControl tapeControl, LedState colour, int speed, int intensity, int transition, Logger logger) throws InvalidTransitionTimeException, TapeInUseException {
+        this.logger = logger;
         if (transition < 0 | transition > 10)
             throw new InvalidTransitionTimeException();
 
@@ -75,15 +77,18 @@ public class Strobe implements IEffect, Runnable {
                 tapeControl.snapTo(colour, this);
                 try {
                     Thread.sleep(40);
-                } catch (InterruptedException e){}
+                } catch (InterruptedException e){
+                    logger.writeError(this,e);
+                }
                 tapeControl.snapTo(LedState.BLACK, this);
                 try {
                     Thread.sleep(Float.valueOf(1000 * timeBetweenFlash).longValue());
                 } catch (InterruptedException e) {
+                    logger.writeError(this,e);
                 }
             }
         } catch (TapeInUseException e) {
-            System.err.println(e.getMessage());
+            logger.writeError(this,e);
         }
     }
 
