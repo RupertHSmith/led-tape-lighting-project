@@ -1,5 +1,6 @@
 package common;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import effects.IEffect;
 
 import java.io.DataOutputStream;
@@ -65,9 +66,7 @@ public class TapeControl implements ITapeControl {
 
         try {
             //Initialize PIGPIO TCP socket connection
-            InetAddress localHost = InetAddress.getLocalHost();
-            socket = new Socket(localHost, 8888);
-            gpioDataOut = new DataOutputStream(socket.getOutputStream());
+            connectTcpSocket();
 
             //Init pins
             initialisePinParameters();
@@ -75,6 +74,14 @@ public class TapeControl implements ITapeControl {
             logger.writeError(this,e);
         }
 
+    }
+
+    private void connectTcpSocket() throws IOException {
+        logger.writeError(this,"Connecting PIGPIO socket...");
+        InetAddress localHost = InetAddress.getLocalHost();
+        socket = new Socket(localHost, 8888);
+        socket.setTcpNoDelay(true);
+        gpioDataOut = new DataOutputStream(socket.getOutputStream());
     }
 
     private void initialisePWMTranslationArray(double k){
@@ -228,6 +235,12 @@ public class TapeControl implements ITapeControl {
             }
         } catch (IOException e){
             logger.writeError(this,e);
+            //restarting tcp connection
+            try {
+                connectTcpSocket();
+            } catch (IOException e1){
+                logger.writeError(this,e1);
+            }
         }
         //System.out.println(r + ", " + g + ", "+ b);
 
