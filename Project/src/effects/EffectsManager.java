@@ -38,6 +38,11 @@ public class EffectsManager implements TcpDirectFinishedListener{
         listenForTcpDirectStart();
     }
 
+    /**
+     * Method swaps the current effect for a new effect, calling terminate
+     * on the current effect and start on the new one
+     * @param effect
+     */
     private void changeEffect(IEffect effect){
             try {
                 if (currentEffect == null) {
@@ -136,6 +141,11 @@ public class EffectsManager implements TcpDirectFinishedListener{
         return false;
     }
 
+    /**
+     * Method called by TcpControlEffect class to notify that the TCP direct communication has
+     * finished and that we should return to normal operation (synchronised as called by that external
+     * thread)
+     */
     @Override
     public synchronized void tcpDirectFinished() {
         setTcpDirectMode(false);
@@ -151,6 +161,11 @@ public class EffectsManager implements TcpDirectFinishedListener{
         }
     }
 
+    /**
+     * Synchronised setter of tcpDirectMode boolean (must be synchronised as TCP direct mode is set
+     * on the UDP listener thread but read on the normal effects manager thread)
+     * @param tcpDirectMode
+     */
     private synchronized void setTcpDirectMode(boolean tcpDirectMode){
         this.tcpDirectMode = tcpDirectMode;
         if (!tcpDirectMode)
@@ -163,6 +178,13 @@ public class EffectsManager implements TcpDirectFinishedListener{
         return tcpDirectMode;
     }
 
+    /**
+     * Begins new thread which, while a TCP direct connection is not currently in use,
+     * listens for incoming UDP packets on TCP_DIRECT_NOTIFY port
+     *
+     * If a UDP packet is received and its text content matches the UID of this device
+     * then switch to TCP direct mode
+     */
     private void listenForTcpDirectStart(){
         new Thread( () -> {
             while (true) {
@@ -197,6 +219,10 @@ public class EffectsManager implements TcpDirectFinishedListener{
         }).start();
     }
 
+    /**
+     * Switches to TCP direct mode and updates tcpDirectMode boolean
+     * @param inetAddress
+     */
     private synchronized void switchToTcpDirect(InetAddress inetAddress){
         setTcpDirectMode(true);
         effectBeforeTcpDirect = currentEffect;
@@ -209,6 +235,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
      * @param deviceState
      */
     public synchronized void processDeviceUpdate (DeviceState deviceState){
+        //We do not switch effects if we are in TCP direct mode
         if (!isTcpDirectMode()) {
             try {
                 if (deviceState.isStandby()) {
