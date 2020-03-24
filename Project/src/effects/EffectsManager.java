@@ -152,11 +152,11 @@ public class EffectsManager implements TcpDirectFinishedListener{
     }
 
     private synchronized void setTcpDirectMode(boolean tcpDirectMode){
-        if (tcpDirectMode = false)
+        this.tcpDirectMode = tcpDirectMode;
+        if (!tcpDirectMode)
             logger.writeMessage(this,"Returning to standard operation");
         else
             logger.writeMessage(this,"Switching to TCP direct mode");
-        this.tcpDirectMode = tcpDirectMode;
     }
 
     private synchronized boolean isTcpDirectMode(){
@@ -198,8 +198,8 @@ public class EffectsManager implements TcpDirectFinishedListener{
     }
 
     private synchronized void switchToTcpDirect(InetAddress inetAddress){
-        effectBeforeTcpDirect = currentEffect;
         setTcpDirectMode(true);
+        effectBeforeTcpDirect = currentEffect;
         String ipAddress = inetAddress.getHostAddress();
         changeEffect(new TcpControlEffect(tc, this,ipAddress,logger));
     }
@@ -316,6 +316,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
             }
         } else {
             //otherwise we're in TCP direct mode so do not attempt to set the effect...
+            logger.writeMessage(this, "Blocked inbound effect request as in TCP direct mode");
         }
     }
 
