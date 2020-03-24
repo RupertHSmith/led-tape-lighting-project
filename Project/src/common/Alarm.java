@@ -6,7 +6,9 @@ import effects.SimpleTimeObject;
 import java.util.ArrayList;
 
 
-
+/**
+ * An alarm object that stores all necessary information for a single Alarm
+ */
 public class Alarm implements Comparable<Alarm>{
 
     private int startHour;
