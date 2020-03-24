@@ -8,6 +8,8 @@ import java.net.Socket;
 
 public class TcpControlEffect implements IEffect, Runnable{
     private static final int TCP_CONTROL_PORT = 5558;
+    private static final int RGB_PACKET = 0;
+    private static final int PACKET_SIZE = 5;
 
     private ITapeControl tc;
     private String ipAddress;
@@ -94,15 +96,16 @@ public class TcpControlEffect implements IEffect, Runnable{
             while (!isTerminated()){
                 //Listen to TCP connection...
                     // Packet structure...
+                    //Byte 1 represents what info the packet contains - 1 for an RGB packet
 
                     /* |----------|-------|-------|-------|-------|  */
                     /* |    1     |   2   |   3   |   4   |   5   |  */
                     /* |----------|-------|-------|-------|-------|  */
-                    /* | End flag |  Red  | Green | Blue  | Fade  |  */
+                    /* | Content  |  Red  | Green | Blue  | Fade  |  */
                     /* |----------|-------|-------|-------|-------|  */
 
-                    byte[] inputBytes = new byte[5];
-                    if (dataIn.read(inputBytes, 0, 5) == 5) {
+                    byte[] inputBytes = new byte[PACKET_SIZE];
+                    if (dataIn.read(inputBytes, 0, PACKET_SIZE) == RGB_PACKET) {
                         if (inputBytes[0] == 0) {
                             int r = byteToInt(inputBytes[1]);
                             int g = byteToInt(inputBytes[2]);
