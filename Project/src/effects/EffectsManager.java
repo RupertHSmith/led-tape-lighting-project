@@ -139,19 +139,23 @@ public class EffectsManager implements TcpDirectFinishedListener{
     @Override
     public synchronized void tcpDirectFinished() {
         setTcpDirectMode(false);
-        if (effectBeforeTcpDirect != null) {
-            changeEffect(effectBeforeTcpDirect);
-        } else {
+        if (effectBeforeTcpDirect == null || effectBeforeTcpDirect instanceof TcpControlEffect) {
             try {
                 changeEffect(new WarmWhite(tc, 100, 2, logger));
             } catch (InvalidTransitionTimeException e){
                 logger.writeError(this,e);
             }
+
+        } else {
+            changeEffect(effectBeforeTcpDirect);
         }
     }
 
     private synchronized void setTcpDirectMode(boolean tcpDirectMode){
-        logger.writeMessage(this,"Returning to standard operation");
+        if (tcpDirectMode = false)
+            logger.writeMessage(this,"Returning to standard operation");
+        else
+            logger.writeMessage(this,"Switching to TCP direct mode");
         this.tcpDirectMode = tcpDirectMode;
     }
 
@@ -167,6 +171,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
                     while (true) {
                         //only listen if we're not in TCP direct as we can only accept one controller
                         if (!isTcpDirectMode()) {
+                            logger.writeMessage(this,"Setup TCP direct listener...");
                             byte[] buf = new byte[256];
                             DatagramPacket packet = new DatagramPacket(buf, buf.length);
                             socket.receive(packet);
@@ -178,6 +183,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
                                 switchToTcpDirect(packet.getAddress());
                             } else {
                                 logger.writeError(this, "UDP payload did not match device UID");
+
                             }
                         }
                     }
@@ -188,12 +194,12 @@ public class EffectsManager implements TcpDirectFinishedListener{
                     } catch (Exception e1) { }
                 }
             }
-        });
+        }).start();
     }
 
     private synchronized void switchToTcpDirect(InetAddress inetAddress){
-        logger.writeMessage(this,"Switching to TCP direct mode");
         effectBeforeTcpDirect = currentEffect;
+        setTcpDirectMode(true);
         String ipAddress = inetAddress.getHostAddress();
         changeEffect(new TcpControlEffect(tc, this,ipAddress,logger));
     }
