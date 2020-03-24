@@ -374,12 +374,6 @@ public class TapeControl implements ITapeControl {
     }
 
     @Override
-    public void fadeThruBlack(LedState s, float duration) throws TapeInUseException {
-        throw new TapeInUseException(controller, this.controller);
-
-    }
-
-    @Override
     public void fadeToBlack(float duration, IEffect controller) throws TapeInUseException {
         fadeTo(LedState.BLACK, duration, controller);
     }
