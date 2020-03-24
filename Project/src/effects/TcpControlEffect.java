@@ -3,6 +3,7 @@ package effects;
 import common.*;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class TcpControlEffect implements IEffect, Runnable{
@@ -32,9 +33,11 @@ public class TcpControlEffect implements IEffect, Runnable{
         boolean notSet = true;
 
         //Make 3 attempts at starting the TCP connection
-        while (counter < 3 && notSet) {
+        while (counter < 2 && notSet) {
             try {
-                socket = new Socket(ipAddress, TCP_CONTROL_PORT);
+                logger.writeMessage(this,"Attempting to open TCP socket...");
+                socket = new Socket();
+                socket.connect(new InetSocketAddress(ipAddress, TCP_CONTROL_PORT), 5000);
                 dataIn = new BufferedInputStream(socket.getInputStream());
                 notSet = false;
                 logger.writeMessage(this, "TCP Direct socket opened");
@@ -49,6 +52,9 @@ public class TcpControlEffect implements IEffect, Runnable{
             }
             counter++;
         }
+
+        if (notSet)
+            tcpDirectFinishedListener.tcpDirectFinished();
     }
 
     public boolean isSocketConnected(){
@@ -63,7 +69,7 @@ public class TcpControlEffect implements IEffect, Runnable{
     private synchronized boolean isTerminated() { return this.terminated; }
 
     @Override
-    public LedState terminate() {
+    public synchronized LedState terminate() {
         setTerminated(true);
         tc.halt();
         try {
@@ -72,7 +78,6 @@ public class TcpControlEffect implements IEffect, Runnable{
         } catch (IOException e) {
             logger.writeError(this, e);
         }
-        tcpDirectFinishedListener.tcpDirectFinished();
         return tc.getColour();
     }
 
@@ -97,16 +102,15 @@ public class TcpControlEffect implements IEffect, Runnable{
                     /* |----------|-------|-------|-------|-------|  */
 
                     byte[] inputBytes = new byte[5];
-
                     if (dataIn.read(inputBytes, 0, 5) == 5) {
                         if (inputBytes[0] == 0) {
-                            int r = byteToInt(inputBytes[0]);
-                            int g = byteToInt(inputBytes[1]);
-                            int b = byteToInt(inputBytes[2]);
-                            int fade = byteToInt(inputBytes[3]);
+                            int r = byteToInt(inputBytes[1]);
+                            int g = byteToInt(inputBytes[2]);
+                            int b = byteToInt(inputBytes[3]);
+                            int fade = byteToInt(inputBytes[4]);
                             tc.fadeTo(new LedState(r, g, b), fade, this);
                         } else {
-                            terminate();
+                            tcpDirectFinishedListener.tcpDirectFinished();
                         }
                     } else {
                         logger.writeError(this, "Invalid TCP message");
