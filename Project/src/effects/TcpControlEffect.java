@@ -1,5 +1,6 @@
 package effects;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import common.*;
 
 import java.io.*;
@@ -9,6 +10,8 @@ import java.net.Socket;
 public class TcpControlEffect implements IEffect, Runnable{
     private static final int TCP_CONTROL_PORT = 5558;
     private static final int RGB_PACKET = 0;
+    private static final int SHUTDOWN_PACKET = 1;
+    private static final int REBOOT_PACKET = 2;
     private static final int PACKET_SIZE = 5;
 
     private ITapeControl tc;
@@ -106,12 +109,16 @@ public class TcpControlEffect implements IEffect, Runnable{
 
                     byte[] inputBytes = new byte[PACKET_SIZE];
                     if (dataIn.read(inputBytes, 0, PACKET_SIZE) == RGB_PACKET) {
-                        if (inputBytes[0] == 0) {
+                        if (inputBytes[0] == RGB_PACKET) {
                             int r = byteToInt(inputBytes[1]);
                             int g = byteToInt(inputBytes[2]);
                             int b = byteToInt(inputBytes[3]);
                             int fade = byteToInt(inputBytes[4]);
                             tc.fadeTo(new LedState(r, g, b), fade, this);
+                        } else if (inputBytes[0] == SHUTDOWN_PACKET) {
+                            shutdownPi();
+                        } else if (inputBytes[0] == REBOOT_PACKET){
+                            rebootPi();
                         } else {
                             tcpDirectFinishedListener.tcpDirectFinished();
                         }
@@ -124,6 +131,32 @@ public class TcpControlEffect implements IEffect, Runnable{
         } catch (TapeInUseException | IOException e){
             logger.writeError(this,e);
             tcpDirectFinishedListener.tcpDirectFinished();
+        }
+    }
+
+    /**
+     * Attempts to shutdown the device
+     */
+    private void shutdownPi(){
+        Runtime p = Runtime.getRuntime();
+        try {
+            logger.writeMessage(this, "Shutting down...");
+            p.exec("sudo shutdown");
+        } catch (IOException e){
+            logger.writeError(this,e);
+        }
+    }
+
+    /**
+     * Attempts to reboot the device
+     */
+    private void rebootPi(){
+        Runtime p = Runtime.getRuntime();
+        try {
+            logger.writeMessage(this, "Restarting...");
+            p.exec("sudo reboot");
+        } catch (IOException e){
+            logger.writeError(this,e);
         }
     }
 }
