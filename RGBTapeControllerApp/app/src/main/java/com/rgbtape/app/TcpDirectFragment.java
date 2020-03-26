@@ -4,6 +4,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,14 +13,25 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import static android.content.ContentValues.TAG;
 
 public class TcpDirectFragment extends Fragment {
+    private BlockingQueue<TcpPacketContainer> packetQueue = new LinkedBlockingQueue<>();
+    private boolean tcpConnectionInProgres = false;
+    private boolean buttonLocked = false;
+    private ServerSocket ss;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -36,81 +49,96 @@ public class TcpDirectFragment extends Fragment {
         }
     }
 
+    private synchronized void setTcpConnectionInProgres(boolean tcpConnectionInProgres){
+        this.tcpConnectionInProgres = tcpConnectionInProgres;
+    }
+
+    private synchronized boolean isTcpConnectionInProgres(){
+        return this.tcpConnectionInProgres;
+    }
+
+    private synchronized void setButtonLocked(boolean buttonLocked){
+        this.buttonLocked = buttonLocked;
+    }
+
+    private synchronized boolean isButtonLocked(){
+        return this.buttonLocked;
+    }
+
     private void initTcpConnectButton(View view){
-        Switch tcpConnectSwitch = view.findViewById(R.id.tcpConnectionButton);
+        final Switch tcpConnectSwitch = view.findViewById(R.id.tcpConnectionButton);
         tcpConnectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked){
-                    (new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            attemptConnection();
+              //  if (!isButtonLocked()) {
+                  //  setButtonLocked(true);
+                    tcpConnectSwitch.setClickable(false);
+                    if (isChecked) {
+                        if (!isTcpConnectionInProgres()) {
+                            (new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    startTcpConnection();
+                                }
+                            })).start();
+                        } else {
+                            tcpConnectSwitch.setChecked(false);
+                            tcpConnectSwitch.setClickable(true);
                         }
-                    })).start();
-                }
+                    } else {
+                        if (isTcpConnectionInProgres()) {
+                            byte[] b = {-1, 0, 0, 0, 0};
+                            addToPacketQueue(b);
+                        }
+                    }
+//                } else {
+//                    tcpConnectSwitch.setChecked(!isChecked);
+//                }
             }
         });
     }
 
-    private void attemptConnection(){
+    private void startTcpConnection(){
         sendUdpBroadCastPacket();
         try{
-            ServerSocket ss = new ServerSocket(5558);
-            for(;;){
-                try{
-                    Socket client = ss.accept();
-                    System.out.println("Accepted client...");
-                    OutputStream outputStream = client.getOutputStream();
+            ss = new ServerSocket(5558);
+            Socket client = ss.accept();
+            System.out.println("Accepted client...");
+            setTcpConnectionInProgres(true);
+            Button tcpConnectSwitch = getView().findViewById(R.id.tcpConnectionButton);
+            tcpConnectSwitch.setClickable(true);
+
+            OutputStream outputStream = client.getOutputStream();
+
+            while (isTcpConnectionInProgres()){
+                byte[] outByte = packetQueue.take().getPacket();
+                outputStream.write(outByte);
+                if (outByte[0] == TcpPacketContainer.END_PACKET){
+                    ss.close();
 
 
-                    for (int i = 0; i < 10; i++) {
-                        Thread.sleep(1000);
-                        byte[] b = new byte[5];
-                        b[0] = 0;
-                        b[1] = 0;          //R
-                        b[2] = 0;          //G
-                        b[3] = (byte) 255; //B
-                        b[4] = 0;
-                        System.out.println("B");
-                        outputStream.write(b);
-                        Thread.sleep(1000);
-                        b = new byte[5];
-                        b[0] = 0;
-                        b[1] = (byte) 255;
-                        b[2] = 0;
-                        b[3] = 0;
-                        b[4] = 0;
-                        System.out.println("R");
-                        outputStream.write(b);
-                        Thread.sleep(1000);
-                        b = new byte[5];
-                        b[0] = 0;
-                        b[1] = 0;
-                        b[2] = (byte) 255;
-                        b[3] = 0;
-                        b[4] = 0;
-                        System.out.println("G");
-                        outputStream.write(b);
-                    }
-
-                    byte[] b = new byte[5];
-                    b[0] = 2;
-                    b[1] = 0;          //R
-                    b[2] = 0;          //G
-                    b[3] = (byte) 255; //B
-                    b[4] = 0;
-                    outputStream.write(b);
-/*
-                    BufferedReader in = new BufferedReader(
-                            new InputStreamReader(client.getInputStream()));
-                    String line;
-                    while((line = in.readLine()) != null)
-                        System.out.println(line+" received");
-                    client.close();*/
-                }catch(Exception e){System.out.println("error "+e);}
+                    setTcpConnectionInProgres(false);
+                    tcpConnectSwitch.setClickable(true);
+                }
+                System.out.println("Wrote packet...");
             }
-        }catch(Exception e){System.out.println("error "+e);}
+
+        }catch(Exception e) {
+            Log.e(TAG,"Error reading queue", e);
+            setTcpConnectionInProgres(false);
+        }
+    }
+
+    private boolean addToPacketQueue(byte[] packet){
+        if (isTcpConnectionInProgres()){
+            try {
+                packetQueue.put(new TcpPacketContainer(packet));
+                return true;
+            } catch (InterruptedException e){
+                Log.e(TAG,"Error adding to queue", e);
+            }
+        }
+        return false;
     }
 
     private void sendUdpBroadCastPacket(){
@@ -129,5 +157,21 @@ public class TcpDirectFragment extends Fragment {
     private void initShutdownRebootButtons(View view){
             Button shutdownButton = view.findViewById(R.id.shutdownButton);
             Button rebootButton = view.findViewById(R.id.rebootButton);
+
+            shutdownButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    byte[] b ={TcpPacketContainer.SHUTDOWN_PACKET,0,0,0,0};
+                    addToPacketQueue(b);
+                }
+            });
+
+        rebootButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                byte[] b ={TcpPacketContainer.REBOOT_PACKET,0,0,0,0};
+                addToPacketQueue(b);
+            }
+        });
     }
 }
