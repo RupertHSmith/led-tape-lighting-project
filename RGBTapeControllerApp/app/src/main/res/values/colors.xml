@@ -10,4 +10,8 @@
 
     <color name="Black">#000</color>
     <color name="Gray">#222222</color>
+    <color name="LightGray">#515151</color>
+
+    <color name="NiceRed">#991D1D</color>
+    <color name="BabyBlue">#9B9BFF</color>
 </resources>
