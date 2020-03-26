@@ -123,10 +123,9 @@ public class TcpControlEffect implements IEffect, Runnable{
                             tcpDirectFinishedListener.tcpDirectFinished();
                         }
                     } else {
-                        logger.writeError(this, "Invalid TCP message");
+                        logger.writeError(this, "Invalid TCP message, closing connection...");
+                        tcpDirectFinishedListener.tcpDirectFinished();
                     }
-
-
             }
         } catch (TapeInUseException | IOException e){
             logger.writeError(this,e);
