@@ -108,7 +108,7 @@ public class TcpControlEffect implements IEffect, Runnable{
                     /* |----------|-------|-------|-------|-------|  */
 
                     byte[] inputBytes = new byte[PACKET_SIZE];
-                    if (dataIn.read(inputBytes, 0, PACKET_SIZE) == RGB_PACKET) {
+                    if (dataIn.read(inputBytes, 0, PACKET_SIZE) == PACKET_SIZE) {
                         if (inputBytes[0] == RGB_PACKET) {
                             int r = byteToInt(inputBytes[1]);
                             int g = byteToInt(inputBytes[2]);
