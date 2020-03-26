@@ -6,18 +6,17 @@ import androidx.annotation.NonNull;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
     public static final String HOME = "Home";
-    public static final String CUSTOM_EFFECTS = "Custom Effects";
+    public static final String TCP_DIRECT = "TCP Direct";
     public static final String ALARMS = "Alarms";
 
     private Fragment homeFragment;
     private Fragment alarmsFragment;
-    private Fragment customEffectsFragment;
+    private Fragment tcpDirectFragment;
 
     private FragmentManager fragmentManager;
 
@@ -44,10 +43,10 @@ public class MainActivity extends AppCompatActivity {
 
                     switchFragments(ALARMS);
                     return true;
-                case R.id.navigation_custom_effects:
+                case R.id.navigation_tcp_direct:
 //                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-//                            new CustomEffectsFragment()).commit();
-                    switchFragments(CUSTOM_EFFECTS);
+//                            new TcpDirectFragment()).commit();
+                    switchFragments(TCP_DIRECT);
                     return true;
             }
             return false;
@@ -65,9 +64,9 @@ public class MainActivity extends AppCompatActivity {
                     fragmentManager.beginTransaction()
                             .hide(alarmsFragment).commit();
                     break;
-                case CUSTOM_EFFECTS:
+                case TCP_DIRECT:
                     fragmentManager.beginTransaction()
-                            .hide(customEffectsFragment).commit();
+                            .hide(tcpDirectFragment).commit();
                     break;
             }
 
@@ -82,9 +81,9 @@ public class MainActivity extends AppCompatActivity {
                     fragmentManager.beginTransaction()
                             .show(alarmsFragment).commit();
                     break;
-                case CUSTOM_EFFECTS:
+                case TCP_DIRECT:
                     fragmentManager.beginTransaction()
-                            .show(customEffectsFragment).commit();
+                            .show(tcpDirectFragment).commit();
                     break;
             }
         }
@@ -93,14 +92,14 @@ public class MainActivity extends AppCompatActivity {
     private void initFragments(ConnectionHandler connectionHandler){
         homeFragment = new HomeFragment(connectionHandler);
         alarmsFragment = new AlarmsFragment(connectionHandler);
-        customEffectsFragment = new CustomEffectsFragment();
+        tcpDirectFragment = new TcpDirectFragment();
 
         if (fragmentManager != null){
             fragmentManager.beginTransaction()
                     .add(R.id.fragment_container, homeFragment)
                     .add(R.id.fragment_container, alarmsFragment)
-                    .add(R.id.fragment_container, customEffectsFragment)
-                    .hide(customEffectsFragment)
+                    .add(R.id.fragment_container, tcpDirectFragment)
+                    .hide(tcpDirectFragment)
                     .hide(alarmsFragment)
                     .show(homeFragment)
                     .commit();

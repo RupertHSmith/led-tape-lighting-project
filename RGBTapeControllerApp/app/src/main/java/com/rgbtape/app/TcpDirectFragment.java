@@ -8,10 +8,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class CustomEffectsFragment extends Fragment {
+public class TcpDirectFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_custom_effects, container, false);
+        return inflater.inflate(R.layout.fragment_tcp_direct, container, false);
     }
 }
