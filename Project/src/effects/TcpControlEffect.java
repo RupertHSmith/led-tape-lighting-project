@@ -77,6 +77,8 @@ public class TcpControlEffect implements IEffect, Runnable{
         //first fade tape out
         try {
             tc.smartFadeToBlack(this);
+            resetTimeOut();
+
             while (!isTerminated()){
                 // Packet structure...
                 //Byte 1 represents what info the packet contains - 1 for an RGB packet
@@ -122,10 +124,11 @@ public class TcpControlEffect implements IEffect, Runnable{
      * If no UDP packets are received in TIMEOUT_WAIT seconds then exit UDP control mode
      */
     private void resetTimeOut(){
-        if (timeoutTimer == null)
-            timeoutTimer = new Timer();
-        else
+        if (timeoutTimer != null){
             timeoutTimer.cancel();
+        }
+
+        timeoutTimer = new Timer();
         timeoutTimer.schedule(new TimerTask() {
             @Override
             public void run() {
