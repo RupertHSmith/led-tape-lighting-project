@@ -193,14 +193,15 @@ public class EffectsManager implements TcpDirectFinishedListener{
         new Thread( () -> {
             while (true) {
                 try {
-                    DatagramSocket socket = new DatagramSocket(UDP_DIRECT_NOTIFY_PORT);
                     while (true) {
                         //only listen if we're not in TCP direct as we can only accept one controller
                         if (!isTcpDirectMode()) {
+                            DatagramSocket socket = new DatagramSocket(UDP_DIRECT_NOTIFY_PORT);
                             logger.writeMessage(this,"Setup TCP direct listener...");
                             byte[] buf = new byte[256];
                             DatagramPacket packet = new DatagramPacket(buf, buf.length);
                             socket.receive(packet);
+                            socket.close();
 
                             String inputData = new String(packet.getData()).trim();
                             if (inputData.equals(deviceUID.getUid())){
@@ -251,6 +252,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
         buf[0] = UDP_CONNECTION_VERSION;
         DatagramPacket packet = new DatagramPacket(buf, buf.length, address, UDP_DIRECT_NOTIFY_PORT);
         socket.send(packet);
+        socket.close();
     }
 
     /**
