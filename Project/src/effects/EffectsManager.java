@@ -21,6 +21,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
     public static final String COOL_WHITE = "CoolWhite";
 
     public static final byte UDP_CONNECTION_VERSION = 1;
+    public static final int UDP_DIRECT_REQUEST_PORT = 5558;
     public static final int UDP_DIRECT_NOTIFY_PORT = 5557;
 //test commit
 
@@ -196,7 +197,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
                     while (true) {
                         //only listen if we're not in TCP direct as we can only accept one controller
                         if (!isTcpDirectMode()) {
-                            DatagramSocket socket = new DatagramSocket(UDP_DIRECT_NOTIFY_PORT);
+                            DatagramSocket socket = new DatagramSocket(UDP_DIRECT_REQUEST_PORT);
                             logger.writeMessage(this,"Setup TCP direct listener...");
                             byte[] buf = new byte[256];
                             DatagramPacket packet = new DatagramPacket(buf, buf.length);
