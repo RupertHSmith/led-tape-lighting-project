@@ -36,11 +36,11 @@ public class TcpControlEffect implements IEffect, Runnable{
         new Thread(asyncTapeController).start();
     }
 
-    private synchronized boolean isPacketsSent() {
+    private boolean isPacketsSent() {
         return packetsSent;
     }
 
-    private synchronized void setPacketsSent(boolean packetsSent) {
+    private void setPacketsSent(boolean packetsSent) {
         this.packetsSent = packetsSent;
     }
 
@@ -73,6 +73,8 @@ public class TcpControlEffect implements IEffect, Runnable{
             datagramSocket.close();
         if (asyncTapeController != null)
             asyncTapeController.setRunning(false);
+        if (timeoutTimer != null)
+            timeoutTimer.cancel();
         return tc.getColour();
     }
 
@@ -88,7 +90,7 @@ public class TcpControlEffect implements IEffect, Runnable{
             tc.smartFadeToBlack(this);
 
             startTimeoutTimer();
-            setPacketsSent(false);
+            setPacketsSent(true);
 
             while (!isTerminated()){
                 // Packet structure...
@@ -132,11 +134,7 @@ public class TcpControlEffect implements IEffect, Runnable{
     /**
      * If no UDP packets are received within a TIMEOUT_WAIT second period then exit UDP control mode
      */
-    private synchronized void startTimeoutTimer(){
-        if (timeoutTimer != null){
-            timeoutTimer.cancel();
-        }
-
+    private void startTimeoutTimer(){
         timeoutTimer = new Timer();
         timeoutTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
