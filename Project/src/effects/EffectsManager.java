@@ -1,10 +1,13 @@
 package effects;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import common.*;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 
 public class EffectsManager implements TcpDirectFinishedListener{
 
@@ -17,7 +20,8 @@ public class EffectsManager implements TcpDirectFinishedListener{
     public static final String WARM_WHITE = "WarmWhite";
     public static final String COOL_WHITE = "CoolWhite";
 
-    public static final int TCP_DIRECT_NOTIFY_PORT = 5557;
+    public static final byte UDP_CONNECTION_VERSION = 1;
+    public static final int UDP_DIRECT_NOTIFY_PORT = 5557;
 //test commit
 
     private ITapeControl tc;
@@ -189,7 +193,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
         new Thread( () -> {
             while (true) {
                 try {
-                    DatagramSocket socket = new DatagramSocket(TCP_DIRECT_NOTIFY_PORT);
+                    DatagramSocket socket = new DatagramSocket(UDP_DIRECT_NOTIFY_PORT);
                     while (true) {
                         //only listen if we're not in TCP direct as we can only accept one controller
                         if (!isTcpDirectMode()) {
@@ -224,10 +228,29 @@ public class EffectsManager implements TcpDirectFinishedListener{
      * @param inetAddress
      */
     private synchronized void switchToTcpDirect(InetAddress inetAddress){
-        setTcpDirectMode(true);
-        effectBeforeTcpDirect = currentEffect;
-        String ipAddress = inetAddress.getHostAddress();
-        changeEffect(new TcpControlEffect(tc, this,ipAddress,logger));
+        try {
+            sendAcknowledgePacket(inetAddress);
+            setTcpDirectMode(true);
+            effectBeforeTcpDirect = currentEffect;
+            String ipAddress = inetAddress.getHostAddress();
+            changeEffect(new TcpControlEffect(tc, this, ipAddress, logger));
+        } catch (IOException e){
+            logger.writeError(this,e);
+        }
+    }
+
+    /**
+     * Sends an acknowledgement packet to the controller requesting UDP control
+     * This is how the controller will receive the IP address of the device
+     * @param address IP Address of controller
+     * @throws IOException Thrown if error sending ack packet
+     */
+    private void sendAcknowledgePacket(InetAddress address) throws IOException {
+        DatagramSocket socket = new DatagramSocket();
+        byte[] buf = new byte[1];
+        buf[0] = UDP_CONNECTION_VERSION;
+        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, UDP_DIRECT_NOTIFY_PORT);
+        socket.send(packet);
     }
 
     /**
