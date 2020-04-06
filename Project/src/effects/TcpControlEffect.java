@@ -59,6 +59,8 @@ public class TcpControlEffect implements IEffect, Runnable{
         tc.halt();
         if (datagramSocket != null && !datagramSocket.isClosed())
             datagramSocket.close();
+        if (asyncTapeController != null)
+            asyncTapeController.setRunning(false);
         return tc.getColour();
     }
 

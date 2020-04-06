@@ -5,6 +5,7 @@ import common.LedState;
 import common.Logger;
 import common.TapeInUseException;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -34,6 +35,14 @@ public class AsyncTapeController implements Runnable{
         return returnVal;
     }
 
+    public void putInQueue(byte[] packet){
+        try {
+            packetQueue.put(packet);
+        } catch (InterruptedException e){
+            logger.writeError(this,e);
+        }
+    }
+
     @Override
     public void run() {
         while(isRunning()){
@@ -42,11 +51,15 @@ public class AsyncTapeController implements Runnable{
                 int r = byteToInt(inputBytes[1]);
                 int g = byteToInt(inputBytes[2]);
                 int b = byteToInt(inputBytes[3]);
-                int fade = byteToInt(inputBytes[4]);
+                float fade = getFade(inputBytes);
                 tc.fadeTo(new LedState(r, g, b), fade, controller);
             } catch (TapeInUseException | InterruptedException e){
                 logger.writeError(this, e);
             }
         }
+    }
+
+    private float getFade(byte[] packet){
+        return ByteBuffer.wrap(packet, 4,4).getFloat();
     }
 }
