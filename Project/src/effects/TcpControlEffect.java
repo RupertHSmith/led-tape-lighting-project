@@ -41,10 +41,9 @@ public class TcpControlEffect implements IEffect, Runnable{
             new Thread(this).start();
         } catch (SocketException e) {
             logger.writeError(this, e);
-        } finally {
-            //close socket
-            if (datagramSocket != null && !datagramSocket.isClosed()) {
+            if(datagramSocket != null && !datagramSocket.isClosed()) {
                 datagramSocket.close();
+                tcpDirectFinishedListener.tcpDirectFinished();
             }
         }
     }
