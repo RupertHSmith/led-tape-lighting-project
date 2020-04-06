@@ -1,26 +1,25 @@
 package effects;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import common.*;
 
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.net.*;
 
 public class TcpControlEffect implements IEffect, Runnable{
-    private static final int TCP_CONTROL_PORT = 5558;
+    private static final int UDP_CONTROL_PORT = 5557;
     private static final int RGB_PACKET = 0;
     private static final int SHUTDOWN_PACKET = 1;
     private static final int REBOOT_PACKET = 2;
-    private static final int PACKET_SIZE = 5;
+    private static final int PACKET_SIZE = 8;
 
     private ITapeControl tc;
     private String ipAddress;
     private Logger logger;
-    private BufferedInputStream dataIn;
-    private Socket socket;
+
+    private DatagramSocket datagramSocket;
     private boolean terminated;
     private TcpDirectFinishedListener tcpDirectFinishedListener;
+    private AsyncTapeController asyncTapeController;
 
 
     public TcpControlEffect(ITapeControl tapeControl, TcpDirectFinishedListener tcpDirectFinishedListener, String ipAddress, Logger logger){
@@ -28,45 +27,26 @@ public class TcpControlEffect implements IEffect, Runnable{
         this.ipAddress = ipAddress;
         this.logger = logger;
         this.tcpDirectFinishedListener = tcpDirectFinishedListener;
+        this.asyncTapeController = new AsyncTapeController(tapeControl,this,logger);
+        new Thread(asyncTapeController).start();
     }
 
     @Override
     public void start() throws TapeInUseException {
         tc.setController(this);
-        int counter = 0;
         setTerminated(false);
-        boolean notSet = true;
-
-        //Make 3 attempts at starting the TCP connection
-        while (counter < 2 && notSet) {
-            try {
-                logger.writeMessage(this,"Attempting to open TCP socket...");
-                socket = new Socket();
-                socket.connect(new InetSocketAddress(ipAddress, TCP_CONTROL_PORT), 5000);
-                dataIn = new BufferedInputStream(socket.getInputStream());
-                notSet = false;
-                logger.writeMessage(this, "TCP Direct socket opened");
-                new Thread(this).start();
-            } catch (Exception e) {
-                logger.writeError(this, e);
-                try {
-                    Thread.sleep(2000);
-                } catch (Exception e1){
-                    logger.writeError(this,e1);
-                }
+        try {
+            logger.writeMessage(this,"Setup UDP listening on port " + UDP_CONTROL_PORT);
+            datagramSocket = new DatagramSocket(UDP_CONTROL_PORT);
+            new Thread(this).start();
+        } catch (SocketException e) {
+            logger.writeError(this, e);
+        } finally {
+            //close socket
+            if (datagramSocket != null && !datagramSocket.isClosed()) {
+                datagramSocket.close();
             }
-            counter++;
         }
-
-        if (notSet)
-            tcpDirectFinishedListener.tcpDirectFinished();
-    }
-
-    public boolean isSocketConnected(){
-        if (socket != null)
-            return socket.isConnected();
-        else
-            return false;
     }
 
     private synchronized void setTerminated(boolean terminated){ this.terminated = terminated; }
@@ -77,12 +57,8 @@ public class TcpControlEffect implements IEffect, Runnable{
     public synchronized LedState terminate() {
         setTerminated(true);
         tc.halt();
-        try {
-            if (socket != null)
-                socket.close();
-        } catch (IOException e) {
-            logger.writeError(this, e);
-        }
+        if (datagramSocket != null && !datagramSocket.isClosed())
+            datagramSocket.close();
         return tc.getColour();
     }
 
@@ -97,39 +73,40 @@ public class TcpControlEffect implements IEffect, Runnable{
         try {
             tc.smartFadeToBlack(this);
             while (!isTerminated()){
-                //Listen to TCP connection...
-                    // Packet structure...
-                    //Byte 1 represents what info the packet contains - 1 for an RGB packet
+                // Packet structure...
+                //Byte 1 represents what info the packet contains - 1 for an RGB packet
 
-                    /* |----------|-------|-------|-------|-------|  */
-                    /* |    1     |   2   |   3   |   4   |   5   |  */
-                    /* |----------|-------|-------|-------|-------|  */
-                    /* | Content  |  Red  | Green | Blue  | Fade  |  */
-                    /* |----------|-------|-------|-------|-------|  */
+                /* |----------|-------|-------|-------|-------|-------|-------|-------|  */
+                /* |    1     |   2   |   3   |   4   |   5   |   6   |   7   |   8   |  */
+                /* |----------|-------|-------|-------|-------|-------|-------|-------|  */
+                /* | Content  |  Red  | Green | Blue  | Fade  | Fade  | Fade  | Fade  |  */
+                /* |----------|-------|-------|-------|-------|-------|-------|-------|  */
 
-                    byte[] inputBytes = new byte[PACKET_SIZE];
-                    if (dataIn.read(inputBytes, 0, PACKET_SIZE) == PACKET_SIZE) {
-                        if (inputBytes[0] == RGB_PACKET) {
-                            int r = byteToInt(inputBytes[1]);
-                            int g = byteToInt(inputBytes[2]);
-                            int b = byteToInt(inputBytes[3]);
-                            int fade = byteToInt(inputBytes[4]);
-                            tc.fadeTo(new LedState(r, g, b), fade, this);
-                        } else if (inputBytes[0] == SHUTDOWN_PACKET) {
-                            shutdownPi();
-                        } else if (inputBytes[0] == REBOOT_PACKET){
-                            rebootPi();
-                        } else {
-                            tcpDirectFinishedListener.tcpDirectFinished();
-                        }
-                    } else {
-                        logger.writeError(this, "Invalid TCP message, closing connection...");
-                        tcpDirectFinishedListener.tcpDirectFinished();
-                    }
+                byte[] inputBytes = new byte[PACKET_SIZE];
+                DatagramPacket inboundPacket = new DatagramPacket(inputBytes,inputBytes.length);
+
+                //Wait for UDP packet
+                datagramSocket.receive(inboundPacket);
+
+                //Handle packet as necessary...
+                if (inputBytes[0] == RGB_PACKET) {
+                    tc.haltRetainControl();
+                    asyncTapeController.putInQueue(inputBytes);
+                } else if (inputBytes[0] == SHUTDOWN_PACKET) {
+                    shutdownPi();
+                } else if (inputBytes[0] == REBOOT_PACKET){
+                    rebootPi();
+                } else {
+                    datagramSocket.close();
+                    tcpDirectFinishedListener.tcpDirectFinished();
+                }
             }
         } catch (TapeInUseException | IOException e){
             logger.writeError(this,e);
             tcpDirectFinishedListener.tcpDirectFinished();
+        } finally {
+            //Ensure UDP socket is closed to release the port
+            datagramSocket.close();
         }
     }
 
