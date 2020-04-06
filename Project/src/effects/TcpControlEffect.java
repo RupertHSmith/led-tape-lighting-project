@@ -4,6 +4,8 @@ import common.*;
 
 import java.io.*;
 import java.net.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class TcpControlEffect implements IEffect, Runnable{
     private static final int UDP_CONTROL_PORT = 5557;
@@ -11,6 +13,7 @@ public class TcpControlEffect implements IEffect, Runnable{
     private static final int SHUTDOWN_PACKET = 1;
     private static final int REBOOT_PACKET = 2;
     private static final int PACKET_SIZE = 8;
+    private static final int TIMEOUT_WAIT = 30 * 1000;
 
     private ITapeControl tc;
     private String ipAddress;
@@ -20,6 +23,7 @@ public class TcpControlEffect implements IEffect, Runnable{
     private boolean terminated;
     private TcpDirectFinishedListener tcpDirectFinishedListener;
     private AsyncTapeController asyncTapeController;
+    private Timer timeoutTimer;
 
 
     public TcpControlEffect(ITapeControl tapeControl, TcpDirectFinishedListener tcpDirectFinishedListener, String ipAddress, Logger logger){
@@ -89,6 +93,9 @@ public class TcpControlEffect implements IEffect, Runnable{
                 //Wait for UDP packet
                 datagramSocket.receive(inboundPacket);
 
+                //Reset timeout
+                resetTimeOut();
+
                 //Handle packet as necessary...
                 if (inputBytes[0] == RGB_PACKET) {
                     tc.haltRetainControl();
@@ -109,6 +116,24 @@ public class TcpControlEffect implements IEffect, Runnable{
             //Ensure UDP socket is closed to release the port
             datagramSocket.close();
         }
+    }
+
+    /**
+     * If no UDP packets are received in TIMEOUT_WAIT seconds then exit UDP control mode
+     */
+    private void resetTimeOut(){
+        if (timeoutTimer == null)
+            timeoutTimer = new Timer();
+        else
+            timeoutTimer.cancel();
+        timeoutTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                logger.writeError(this, "No packets were received for 30 seconds, ending connection");
+                datagramSocket.close();
+                tcpDirectFinishedListener.tcpDirectFinished();
+            }
+        }, TIMEOUT_WAIT);
     }
 
     /**
