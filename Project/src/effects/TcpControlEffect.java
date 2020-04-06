@@ -24,6 +24,7 @@ public class TcpControlEffect implements IEffect, Runnable{
     private TcpDirectFinishedListener tcpDirectFinishedListener;
     private AsyncTapeController asyncTapeController;
     private Timer timeoutTimer;
+    private boolean packetsSent;
 
 
     public TcpControlEffect(ITapeControl tapeControl, TcpDirectFinishedListener tcpDirectFinishedListener, String ipAddress, Logger logger){
@@ -33,6 +34,14 @@ public class TcpControlEffect implements IEffect, Runnable{
         this.tcpDirectFinishedListener = tcpDirectFinishedListener;
         this.asyncTapeController = new AsyncTapeController(tapeControl,this,logger);
         new Thread(asyncTapeController).start();
+    }
+
+    private synchronized boolean isPacketsSent() {
+        return packetsSent;
+    }
+
+    private synchronized void setPacketsSent(boolean packetsSent) {
+        this.packetsSent = packetsSent;
     }
 
     @Override
@@ -77,7 +86,9 @@ public class TcpControlEffect implements IEffect, Runnable{
         //first fade tape out
         try {
             tc.smartFadeToBlack(this);
-            resetTimeOut();
+
+            startTimeoutTimer();
+            setPacketsSent(false);
 
             while (!isTerminated()){
                 // Packet structure...
@@ -94,9 +105,7 @@ public class TcpControlEffect implements IEffect, Runnable{
 
                 //Wait for UDP packet
                 datagramSocket.receive(inboundPacket);
-
-                //Reset timeout
-                resetTimeOut();
+                setPacketsSent(true);
 
                 //Handle packet as necessary...
                 if (inputBytes[0] == RGB_PACKET) {
@@ -121,22 +130,26 @@ public class TcpControlEffect implements IEffect, Runnable{
     }
 
     /**
-     * If no UDP packets are received in TIMEOUT_WAIT seconds then exit UDP control mode
+     * If no UDP packets are received within a TIMEOUT_WAIT second period then exit UDP control mode
      */
-    private void resetTimeOut(){
+    private synchronized void startTimeoutTimer(){
         if (timeoutTimer != null){
             timeoutTimer.cancel();
         }
 
         timeoutTimer = new Timer();
-        timeoutTimer.schedule(new TimerTask() {
+        timeoutTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                logger.writeError(this, "No packets were received for 30 seconds, ending connection");
-                datagramSocket.close();
-                tcpDirectFinishedListener.tcpDirectFinished();
+                logger.writeError(this, "Checking whether packets were sent in the last 30 seconds");
+                if (!isPacketsSent()) {
+                    logger.writeError(this,"No packets were sent");
+                    datagramSocket.close();
+                    tcpDirectFinishedListener.tcpDirectFinished();
+                }
+                setPacketsSent(false);
             }
-        }, TIMEOUT_WAIT);
+        },0, TIMEOUT_WAIT);
     }
 
     /**
