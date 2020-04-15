@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 case R.id.navigation_direct_control:
 //                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-//                            new TcpDirectFragment()).commit();
+//                            new DirectConnectionFragment()).commit();
                     switchFragments(TCP_DIRECT);
                     return true;
             }
@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
     private void initFragments(ConnectionHandler connectionHandler){
         homeFragment = new HomeFragment(connectionHandler);
         alarmsFragment = new AlarmsFragment(connectionHandler);
-        tcpDirectFragment = new TcpDirectFragment();
+        tcpDirectFragment = new DirectConnectionFragment();
 
         if (fragmentManager != null){
             fragmentManager.beginTransaction()

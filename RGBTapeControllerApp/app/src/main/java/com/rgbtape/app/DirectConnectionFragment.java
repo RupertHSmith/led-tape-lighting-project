@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 
 import static android.content.ContentValues.TAG;
 
-public class TcpDirectFragment extends Fragment {
+public class DirectConnectionFragment extends Fragment {
     private BlockingQueue<TcpPacketContainer> packetQueue = new LinkedBlockingQueue<>();
     private boolean tcpConnectionInProgres = false;
     private boolean buttonLocked = false;
@@ -140,7 +140,7 @@ public class TcpDirectFragment extends Fragment {
     }
 
     private void initFlashButtons(View view){
-        Button tapButton = view.findViewById(R.id.tap_button);
+        final Button tapButton = view.findViewById(R.id.tap_button);
         tapButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -163,6 +163,8 @@ public class TcpDirectFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 cancelFlashing();
+                String tap = "TAP";
+                tapButton.setText(tap);
             }
         });
 
