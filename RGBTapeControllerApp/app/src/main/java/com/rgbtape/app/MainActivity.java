@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
                     switchFragments(ALARMS);
                     return true;
-                case R.id.navigation_tcp_direct:
+                case R.id.navigation_direct_control:
 //                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
 //                            new TcpDirectFragment()).commit();
                     switchFragments(TCP_DIRECT);

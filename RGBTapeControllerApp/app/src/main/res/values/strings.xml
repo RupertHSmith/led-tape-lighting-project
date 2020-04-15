@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">RGB Tape App</string>
     <string name="title_home">Home</string>
-    <string name="title_custom_effects">TCP Direct</string>
+    <string name="title_custom_effects">Direct Control</string>
     <string name="title_alarms">Alarms</string>
     <string name="speed_label">Speed</string>
     <string name="colour_label">Colour</string>
