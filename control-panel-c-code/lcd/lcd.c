@@ -190,16 +190,19 @@ void clear_screen()
     fill_rectangle(r, display.background);
 }
 
-void display_char_large(char c)
+void display_char_large (uint8_t digit, uint16_t x, uint16_t y)
 {
-    uint16_t x, y;
     PGM_P fdata; 
     uint8_t bits, mask;
-    uint16_t sc=display.x, ec=display.x + 95, sp=display.y, ep=display.y + 128;
+    uint16_t sc=x, ec=x + 95, sp=y, ep=y + 128;
 
-   // if (c < 32 || c > 126) return;
-
-    fdata = impact;
+    if (digit < 0 || digit > 9) 
+    {
+        return;
+    }
+    /* there are 16 bytes per column of char */
+    /* there are 96 columns per char therefore 1.536KBytes per char */
+    fdata = exoDigits + (digit * 1536);
     write_cmd(PAGE_ADDRESS_SET);
     write_data16(sp);
     write_data16(ep);
@@ -219,13 +222,6 @@ void display_char_large(char c)
                 write_data16((bits & mask) ? display.foreground : display.background);
         }            
     }
-   // write_cmd(COLUMN_ADDRESS_SET);
-   // write_data16(x);
-   // write_data16(x);
-   // write_cmd(MEMORY_WRITE);
-
-    display.x = 0;
-    display.y += 132;
 }
 
 void display_char(char c)
