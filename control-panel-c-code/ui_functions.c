@@ -7,6 +7,9 @@ uint8_t intensity_display_digit_3;
 void init_ui_functions()
 {
     clear_screen();
+    intensity_display_digit_1 = 0;
+    intensity_display_digit_2 = 0;
+    intensity_display_digit_3 = 0;
     display_digit(0,16,56);
     display_digit(0,112,56);
     display_digit(0, 208, 56);
