@@ -50,6 +50,8 @@ public interface ITapeControl {
      */
     void smartFadeToBlack(IEffect controller) throws TapeInUseException;
 
+    boolean isTransitioning();
+
     /**
      * Requests control of the tape so that if granted, no other effect
      * can affect the tape while this effect is in control
@@ -65,6 +67,8 @@ public interface ITapeControl {
      * @return Returns the halted led state
      */
     LedState halt();
+
+    LedState haltRetainControl();
 
     /**
      * Returns the current colour of the tape

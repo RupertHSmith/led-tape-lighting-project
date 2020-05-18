@@ -176,7 +176,7 @@ public class TapeControl implements ITapeControl {
         this.transitioning = transitioning;
     }
 
-    private synchronized  boolean isTransitioning(){
+    public synchronized  boolean isTransitioning(){
         return transitioning;
     }
 
@@ -278,6 +278,22 @@ public class TapeControl implements ITapeControl {
         float duration = calculateSmartDuration(s);
         //now perform this fade
         fadeTo(s, duration, controller);
+    }
+
+    @Override
+    public LedState haltRetainControl() {
+        setHalted(true);
+
+        //Block while execution halts
+        while (getHalted() && isTransitioning()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                logger.writeError(this, e);
+            }
+        }
+        setHalted(false);
+        return getState();
     }
 
     private float calculateSmartDuration(LedState s){
