@@ -4,6 +4,13 @@ uint8_t intensity_display_digit_1;
 uint8_t intensity_display_digit_2;
 uint8_t intensity_display_digit_3;
 
+void init_ui_functions()
+{
+    clear_screen();
+    display_digit(0,16,56);
+    display_digit(0,112,56);
+    display_digit(0, 208, 56);
+}
 
 void set_intensity_display(uint8_t intensity)
 {
