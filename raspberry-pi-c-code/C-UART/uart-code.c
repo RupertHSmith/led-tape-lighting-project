@@ -2,6 +2,7 @@
 	UART communication on Raspberry Pi using C (WiringPi Library)
 	http://www.electronicwings.com
 */
+#include "uart-code.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -27,6 +28,11 @@ void processString(char* stringToProcess)
 		fflush(stdout);
 
 	}
+}
+
+int getControlPanelIntensity()
+{
+	return control_panel_intensity;
 }
 
 int main()
