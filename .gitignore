@@ -9,3 +9,5 @@ Project/out/
 RGBTapeControllerApp/app/google-services.json
 RGBTapeControllerApp/app/release/ 
 **/pre\ problem/
+**/bmp-to-hex/out/
+**/control-panel-c-code/_build/
