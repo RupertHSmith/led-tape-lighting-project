@@ -12,6 +12,8 @@ public class BmpToHex {
     public BmpToHex(String imageFolder, String output){
         this.imagePath = imageFolder;
         this.outputFile = output;
+        
+
     }
 
     public void makeFile(){
@@ -39,6 +41,7 @@ public class BmpToHex {
             PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
             out.println(output);
             out.close();
+
         } catch (IOException e){
             e.printStackTrace();
         }
