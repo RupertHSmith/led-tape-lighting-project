@@ -1,6 +1,7 @@
 /* COMP2215 Task 5---SKELETON */
 
 #include "os.h"
+#include "ui_functions.h"
 
 
 int blink(int);
@@ -19,8 +20,9 @@ void main(void) {
     os_init();
 
     os_add_task( blink,            30, 1);
-    os_add_task( collect_delta,   500, 1);
+    os_add_task( collect_delta,   100, 1);
     os_add_task( check_switches,  100, 1);
+	set_intensity_display(0);	
 
     sei();
     for(;;){}
@@ -29,7 +31,18 @@ void main(void) {
 
 
 int collect_delta(int state) {
-	position += os_enc_delta();
+	int delta = os_enc_delta();
+	if (delta)
+	{	
+		position += delta;
+		if (position > 100)
+			position = 100;
+		else if (position < 0)
+			position = 0;
+
+		//Now set display
+		set_intensity_display(position);		
+	}
 	return state;
 }
 
@@ -53,7 +66,19 @@ int check_switches(int state) {
 	}
 
 	if (get_switch_long(_BV(SWC))) {
-		display_char_large('c');
+		if (position)
+		{
+			position = 0;
+			set_intensity_display(position);
+		}
+		else 
+		{
+			//otherwise lights already off so set intensity to max
+			position = 100;
+			set_intensity_display(position);
+		}
+
+		//set_intensity_display(57);
 		/*f_mount(&FatFs, "", 0);
 		if (f_open(&File, "myfile.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {
 			f_lseek(&File, f_size(&File));
