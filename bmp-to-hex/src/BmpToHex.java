@@ -1,36 +1,54 @@
 import java.io.*;
 
 public class BmpToHex {
+    private String imagePath;
+    private String outputFile;
+
     public static void main (String[] args){
-        BmpToHex bmpToHex = new BmpToHex();
+        BmpToHex bmpToHex = new BmpToHex("chars//csvs//", "output.txt");
+        bmpToHex.makeFile();
     }
 
-    public BmpToHex(){
-        File file = new File("C:\\Users\\smith\\OneDrive - University of Southampton\\Desktop\\img.csv");
-        if (file.isFile()){
-            try {
-                BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-                String csvLine = bufferedReader.readLine();
-                boolean[][] bitmap = parseCSVLine(csvLine, 128,96);
-                String hexString = convertToHex(bitmap, 128, 96);
-                bufferedReader.close();
+    public BmpToHex(String imageFolder, String output){
+        this.imagePath = imageFolder;
+        this.outputFile = output;
+    }
 
+    public void makeFile(){
+        try {
+            String output = "{ ";
+            for (int i = 0; i < 10; i++){
+                String charFile = String.format("%schar_%d.csv", imagePath, i);
+                File file = new File(charFile);
+                if (file.isFile()){
 
-                PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("C:\\Users\\smith\\OneDrive - University of Southampton\\Desktop\\imghex.txt")));
-                out.println(hexString);
-                out.close();
+                        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+                        String csvLine = bufferedReader.readLine();
+                        boolean[][] bitmap = parseCSVLine(csvLine, 128,96);
+                        String hexString = convertToHex(bitmap, 128, 96);
+                        bufferedReader.close();
+                        output += hexString;
 
-            } catch (IOException e){
-                e.printStackTrace();
+                } else {
+                    System.err.println("File not found");
+                }
             }
 
-        } else {
-            System.err.println("File not found");
+            output = output.substring(0, output.length() - 2);
+            output += "}; ";
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
+            out.println(output);
+            out.close();
+        } catch (IOException e){
+            e.printStackTrace();
         }
+
+
+
     }
 
     private String convertToHex(boolean[][] bitmap, int height, int width){
-        String output = "{ ";
+        String output = "";
         for (int w = 0; w < width; w++) {
             int noBytes = height / 8;
             for (int nByte = 0; nByte < noBytes; nByte++) {
@@ -48,8 +66,7 @@ public class BmpToHex {
                 output += hexString + ", ";
             }
         }
-        output = output.substring(0, output.length() - 2);
-        output += " };";
+
         return output;
     }
 
