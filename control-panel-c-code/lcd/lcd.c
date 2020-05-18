@@ -201,7 +201,7 @@ void display_char_large (uint8_t digit, uint16_t x, uint16_t y)
 
     if (digit < 0 || digit > 9) 
         return;
-        
+
     /* there are 16 bytes per column of char */
     /* there are 96 columns per char therefore 1.536KBytes per char */
     fdata = exoDigits + (digit * 1536);
