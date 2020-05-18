@@ -19,10 +19,10 @@ int position = 0;
 void main(void) {
     os_init();
 
+	init_ui_functions();
     os_add_task( blink,            30, 1);
     os_add_task( collect_delta,   100, 1);
-    os_add_task( check_switches,  100, 1);
-	set_intensity_display(0);	
+    os_add_task( check_switches,  100, 1);	
 
     sei();
     for(;;){}
