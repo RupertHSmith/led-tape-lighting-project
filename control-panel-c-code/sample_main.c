@@ -44,7 +44,7 @@ int collect_delta(int state) {
 		set_intensity_display(position);	
 
 		//output to UART
-		printf("<<<i%d>>>\n", position);
+		printf("<<<i%03d>>>\n", position);
 
 
 	}
@@ -74,14 +74,14 @@ int check_switches(int state) {
 		if (position)
 		{
 			position = 0;
-			printf("<<<i%d>>>\n", position);
+			printf("<<<i%03d>>>\n", position);
 			set_intensity_display(position);
 		}
 		else 
 		{
 			//otherwise lights already off so set intensity to max
 			position = 100;
-			printf("<<<i%d>>>\n", position);
+			printf("<<<i%03d>>>\n", position);
 			set_intensity_display(position);
 		}
 
