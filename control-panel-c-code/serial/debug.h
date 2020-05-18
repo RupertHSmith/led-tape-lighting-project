@@ -7,8 +7,8 @@
  *
  *   | PIN | Function      | Connected to                                 |
  *   |-----+---------------+----------------------------------------------|
- *   | PD2 | RX of USART 1 | to ORANGE wire  -->  TX on FTDI C232HM cable |
- *   | PD3 | TX of USART 1 | to YELLOW wire  -->  RX on FTDI C232HM cable |
+ *   | PD2 | RX of USART 1 | to ORANGE wire  -->  TX on Pi: pin 8         |
+ *   | PD3 | TX of USART 1 | to YELLOW wire  -->  RX on Pi: pin 10        |
  *   | G   | Signal Ground | to BLACK wire   -->  ground on C232HM cable  |
  *
  * Configure your serial terminal for:
@@ -38,7 +38,7 @@
 
 int uputchar1(char c, FILE *stream)
 {
-	if (c == '\n') uputchar1('\r', stream);
+	//if (c == '\n') uputchar1('\r', stream);
 	while (!(UCSR1A & _BV(UDRE1)));
 	UDR1 = c;
 	return c;
