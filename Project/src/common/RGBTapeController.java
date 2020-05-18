@@ -32,8 +32,30 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
     }
 
     public RGBTapeController (){
+        /* TESTING CODE */
         UartCode uartCode = new UartCode();
-        uartCode.main();
+
+        (new Thread(new Runnable() {
+            @Override
+            public void run() {
+                uartCode.main();
+            }
+        })).start();
+
+        (new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (;;){
+                    System.out.println("UART VAL: " + uartCode.getControlPanelIntensity() + " retrieved");
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+        })).start();
+
 
         System.out.println("Beginning logging...");
 
