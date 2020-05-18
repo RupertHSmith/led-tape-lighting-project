@@ -2,8 +2,7 @@
 	UART communication on Raspberry Pi using C (WiringPi Library)
 	http://www.electronicwings.com
 */
-#include <jni.h>
-#include "UartCode.h"
+
 
 #include <stdio.h>
 #include <string.h>
@@ -15,31 +14,28 @@
 #include <wiringPi.h>
 #include <wiringSerial.h>
 
-/* this must be jint for JNI to function properly */
-volatile jint control_panel_intensity = 0;
+volatile uint8_t control_panel_intensity = 0;
 
 void processString(char* stringToProcess)
 {
 	if (stringToProcess[0] == 'i')
 	{
 		// then this is an intensity command so set global control_panel_intensity to this val
-		char* endPntr = stringToProcess;
-                stringToProcess[4] = '\0';
-	        int a = strtoumax(stringToProcess + 1, &endPntr, 10);
+		char* endPntr = stringToProcess + 3;
+		control_panel_intensity = strtoumax(stringToProcess + 1, &endPntr, 10);
 
-		printf("Intensity: %d%%\n", a);
+		printf("Intensity: %d%%\n", control_panel_intensity);
 		fflush(stdout);
 
 	}
 }
 
-
-JNIEXPORT jint JNICALL Java_UartCode_getControlPanelIntensity(JNIEnv *env, jobject javaobj)
+int getControlPanelIntensity()
 {
 	return control_panel_intensity;
 }
 
-JNIEXPORT void JNICALL Java_UartCode_main(JNIEnv * env, jobject javaobj)
+int main()
 {
 	control_panel_intensity = 0;
   printf("BEGINNING");
@@ -48,13 +44,13 @@ JNIEXPORT void JNICALL Java_UartCode_main(JNIEnv * env, jobject javaobj)
   if ((serial_port = serialOpen("/dev/ttyAMA0", 9600)) < 0)		/* open serial port */
   {
     fprintf(stderr, "Unable to open serial device: %s\n", strerror(errno));
-    return;
+    return 1;
   }
 
   if (wiringPiSetup() == -1)							/* initializes wiringPi setup */
   {
     fprintf(stdout, "Unable to start wiringPi: %s", strerror(errno));
-    return;
+    return 1;
   }
 
 	char inputBuffer[10];

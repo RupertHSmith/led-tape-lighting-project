@@ -1,2 +1,0 @@
-int getControlPanelIntensity();
-int main();
