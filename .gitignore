@@ -12,3 +12,5 @@ RGBTapeControllerApp/app/release/
 **/bmp-to-hex/out/
 **/control-panel-c-code/_build/
 bmp-to-hex/output.txt
+raspberry-pi-c-code/C-UART/old/
+raspberry-pi-c-code/C-UART/temp/
