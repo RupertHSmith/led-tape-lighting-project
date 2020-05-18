@@ -41,7 +41,10 @@ int collect_delta(int state) {
 			position = 0;
 
 		//Now set display
-		set_intensity_display(position);		
+		set_intensity_display(position);	
+
+		//output to UART
+		printf("<<<%d>>>\n", position);
 	}
 	return state;
 }
@@ -50,19 +53,19 @@ int collect_delta(int state) {
 int check_switches(int state) {
 
 	if (get_switch_press(_BV(SWN))) {
-			display_string("North\n");
+
 	}
 
 	if (get_switch_press(_BV(SWE))) {
-			display_string("East\n");
+
 	}
 
 	if (get_switch_press(_BV(SWS))) {
-			display_string("South\n");
+
 	}
 
 	if (get_switch_press(_BV(SWW))) {
-			display_string("West\n");
+
 	}
 
 	if (get_switch_long(_BV(SWC))) {
@@ -92,32 +95,32 @@ int check_switches(int state) {
 	}
 
 	if (get_switch_short(_BV(SWC))) {
-			//display_string("[S] Centre\n");
+
 	}
 
 	if (get_switch_rpt(_BV(SWN))) {
-			display_string("[R] North\n");
+
 	}
 
 	if (get_switch_rpt(_BV(SWE))) {
-			display_string("[R] East\n");
+
 	}
 
 	if (get_switch_rpt(_BV(SWS))) {
-			display_string("[R] South\n");
+
 	}
 
 	if (get_switch_rpt(_BV(SWW))) {
-			display_string("[R] West\n");
+
 	}
 
 	if (get_switch_rpt(SWN)) {
-			display_string("[R] North\n");
+
 	}
 
 
 	if (get_switch_long(_BV(OS_CD))) {
-		display_string("Detected SD card.\n");
+
 	}
 
 	return state;
