@@ -190,7 +190,7 @@ void clear_screen()
     fill_rectangle(r, display.background);
 }
 
-void display_char_large (uint8_t digit, uint16_t x, uint16_t y)
+void display_digit (uint8_t digit, uint16_t x, uint16_t y)
 {
     PGM_P fdata; 
     uint8_t bits, mask;
