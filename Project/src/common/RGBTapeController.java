@@ -32,6 +32,9 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
     }
 
     public RGBTapeController (){
+        UartCode uartCode = new UartCode();
+        uartCode.main();
+
         System.out.println("Beginning logging...");
 
             try {
