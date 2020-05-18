@@ -20,6 +20,11 @@ void processString(char* stringToProcess)
 	if (stringToProcess[0] == 'i')
 	{
 		// then this is an intensity command so set global control_panel_intensity to this val
+		char* endPntr = stringToProcess + 3;
+		control_panel_intensity = strtoumax(stringToProcess + 1, &endPntr, 10);
+
+		printf("Intensity: %d%%\n", control_panel_intensity);
+		fflush(stdout);
 
 	}
 }
@@ -84,15 +89,14 @@ int main()
 				if (receivedEndChars == 3)
 				{
 					/* Then we accept this string!! */
-					printf("Intensity: %.*s\n", 4, inputBuffer);
-                                        fflush(stdout);
 
+					processString(inputBuffer);
 					readingStartChars = true;
-				readingEndChars = false;
-				readingString = false;
-				receivedStartChars = 0;
-				receivedEndChars = 0;
-				bufferPos = 0;
+					readingEndChars = false;
+					readingString = false;
+					receivedStartChars = 0;
+					receivedEndChars = 0;
+					bufferPos = 0;
 					/* Now reset */
 				}
 			}
