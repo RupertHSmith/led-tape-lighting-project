@@ -2,7 +2,7 @@ package common;
 
 import java.io.IOException;
 
-class UartCode{
+public class UartCode{
 	public native int getControlPanelIntensity();
 	public native void main();
 	
