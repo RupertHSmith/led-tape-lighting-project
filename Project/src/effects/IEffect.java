@@ -17,7 +17,7 @@ public interface IEffect {
      * Sets intensity whilst running
      * @param intensity intensity to set
      */
-    void setIntensity(int intensity);
+    void setIntensity(int intensity, boolean snap);
 
     /**
      * Called to stop the effect running and release control of the Tape

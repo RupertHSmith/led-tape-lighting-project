@@ -63,6 +63,11 @@ public class CustomEffect implements IEffect, Runnable{
         this.speed = speed;
     }
 
+    @Override
+    public void setIntensity(int intensity, boolean snap) {
+
+    }
+
     public void setIntensity(int intensity){
         this.intensity = intensity;
 

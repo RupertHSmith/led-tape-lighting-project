@@ -38,7 +38,7 @@ public class WarmWhite implements Runnable, IEffect {
     }
 
     @Override
-    public void setIntensity(int intensity) {
+    public void setIntensity(int intensity, boolean snap) {
 
     }
 

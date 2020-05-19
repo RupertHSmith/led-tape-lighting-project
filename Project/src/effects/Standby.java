@@ -30,7 +30,7 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
     private boolean alarmComplete;
 
     @Override
-    public void setIntensity(int intensity) {
+    public void setIntensity(int intensity, boolean snap) {
 
     }
 

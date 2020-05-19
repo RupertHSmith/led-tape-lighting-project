@@ -26,7 +26,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
     public static final int UDP_DIRECT_REQUEST_PORT = 5558;
     public static final int UDP_DIRECT_NOTIFY_PORT = 5557;
 
-    private static final long CONTROL_PANEL_PERIOD = 100;
+    private static final long CONTROL_PANEL_PERIOD = 50;
 
     private ITapeControl tc;
     private UartCode uartCode;
@@ -60,10 +60,12 @@ public class EffectsManager implements TcpDirectFinishedListener{
             public void run() {
                 //Check for update..
                 int newVal = uartCode.getControlPanelIntensity();
-                if (newVal != controlPanelIntensity){
+                int delta = Math.abs(newVal - controlPanelIntensity);
+                if (delta > 0){
                     controlPanelIntensity = newVal;
+                    logger.writeMessage(this, String.format("Set intensity: %d%%", controlPanelIntensity));
                     if (currentEffect != null){
-                        currentEffect.setIntensity(controlPanelIntensity);
+                        currentEffect.setIntensity(controlPanelIntensity, delta < 50 );
                     }
                 }
             }

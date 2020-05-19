@@ -15,7 +15,7 @@ public class CoolWhite implements IEffect, Runnable {
     private LedState colour;
     private LedState unalteredColour;
     private Logger logger;
-    private boolean intensityChanged;
+    private boolean snapIntensityChange = false;
 
 
     public CoolWhite(ITapeControl tapeControl, int intensity, int transition, Logger logger) throws InvalidTransitionTimeException {
@@ -26,7 +26,6 @@ public class CoolWhite implements IEffect, Runnable {
         this.tapeControl = tapeControl;
         this.transition = transition;
         this.intensity = intensity;
-        intensityChanged = false;
         setTerminated(false);
         setAppliedColour(LedState.applyIntensity(unalteredColour, intensity));
     }
@@ -46,13 +45,12 @@ public class CoolWhite implements IEffect, Runnable {
     }
 
     @Override
-    public void setIntensity(int intensity) {
+    public void setIntensity(int intensity, boolean snap) {
         if (this.intensity != intensity) {
             this.intensity = intensity;
-            this.intensityChanged = true;
+            tapeControl.haltRetainControl();
+            this.snapIntensityChange = snap;
             setAppliedColour(LedState.applyIntensity(unalteredColour, intensity));
-        } else {
-            intensityChanged = false;
         }
     }
 
@@ -88,10 +86,14 @@ public class CoolWhite implements IEffect, Runnable {
 
             //check for intensity change..
             while (!getTerminated()) {
-                if (intensityChanged){
-                    tapeControl.smartFade(colour,this);
-                    intensityChanged = false;
+                if (!colour.equals(tapeControl.getColour())){
+                    if (snapIntensityChange){
+                        tapeControl.snapTo(colour, this);
+                    } else {
+                        tapeControl.smartFade(colour, this);
+                    }
                 }
+
             }
 
         } catch (TapeInUseException e){

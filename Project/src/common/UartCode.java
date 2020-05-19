@@ -12,7 +12,7 @@ public class UartCode{
 	}*/
 
 	static {
-		System.out.println("ATTEMPTING TO LOAD UART 00 32");
+		System.out.println("ATTEMPTING TO LOAD UART 10 26");
 		try {
 			NativeUtils.loadLibraryFromJar("/libUartCode.so");
 		} catch (IOException e){
