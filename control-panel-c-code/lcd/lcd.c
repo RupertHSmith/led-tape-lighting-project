@@ -274,6 +274,13 @@ void display_string(char *str)
         display_char(str[i]);
 }
 
+void display_string_len(char *str, uint8_t len)
+{
+    uint8_t i;
+    for(i=0; i<len; i++) 
+        display_char(str[i]);
+}
+
 void display_string_xy(char *str, uint16_t x, uint16_t y)
 {
     uint8_t i;
