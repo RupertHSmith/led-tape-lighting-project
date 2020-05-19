@@ -18,6 +18,11 @@ public class StaticEffect implements IEffect, Runnable {
         this(tapeControl, new LedState(colour.get(0), colour.get(1), colour.get(2)), intensity, transition, logger);
     }
 
+    @Override
+    public void setIntensity(int intensity) {
+
+    }
+
     public StaticEffect(ITapeControl tapeControl, LedState staticColour, int intensity, int transition, Logger logger) throws InvalidTransitionTimeException{
         this.logger = logger;
         if (transition < 0 | transition > 10)

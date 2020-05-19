@@ -38,6 +38,11 @@ public class WarmWhite implements Runnable, IEffect {
     }
 
     @Override
+    public void setIntensity(int intensity) {
+
+    }
+
+    @Override
     public LedState terminate() {
         //release control from this effect
         return tapeControl.halt();

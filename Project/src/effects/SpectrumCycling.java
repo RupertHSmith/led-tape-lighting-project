@@ -39,6 +39,11 @@ public class SpectrumCycling implements IEffect, Runnable{
         duration = calculateDuration(speed);
     }
 
+    @Override
+    public void setIntensity(int intensity) {
+
+    }
+
     private void applyIntensities(int intensity){
         STAGE_1 = LedState.applyIntensity(STAGE_1, intensity);
         STAGE_2 = LedState.applyIntensity(STAGE_2, intensity);

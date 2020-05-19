@@ -29,6 +29,11 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
 
     private boolean alarmComplete;
 
+    @Override
+    public void setIntensity(int intensity) {
+
+    }
+
     public Standby(ITapeControl tc, IAlarmController alarmController, int transition, List<Alarm> alarms, Logger logger){
         this.logger = logger;
         this.tc = tc;

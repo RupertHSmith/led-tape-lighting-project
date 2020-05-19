@@ -26,6 +26,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
 //test commit
 
     private ITapeControl tc;
+    private UartCode uartCode;
     private IEffect currentEffect;
     private IAlarmController alarmController;
     private Logger logger;

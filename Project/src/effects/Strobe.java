@@ -48,6 +48,11 @@ public class Strobe implements IEffect, Runnable {
         new Thread(this).start();
     }
 
+    @Override
+    public void setIntensity(int intensity) {
+
+    }
+
     public int getSpeed() {
         return this.speed;
     }
