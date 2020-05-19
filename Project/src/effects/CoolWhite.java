@@ -88,7 +88,7 @@ public class CoolWhite implements IEffect, Runnable {
             while (!getTerminated()) {
                 if (!colour.equals(tapeControl.getColour())){
                     if (snapIntensityChange){
-                        tapeControl.snapTo(colour, this);
+                        tapeControl.fadeTo(colour, 0.06f,this);
                     } else {
                         tapeControl.smartFade(colour, this);
                     }
