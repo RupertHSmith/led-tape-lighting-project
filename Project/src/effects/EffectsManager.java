@@ -8,6 +8,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class EffectsManager implements TcpDirectFinishedListener{
 
@@ -23,7 +25,8 @@ public class EffectsManager implements TcpDirectFinishedListener{
     public static final byte UDP_CONNECTION_VERSION = 1;
     public static final int UDP_DIRECT_REQUEST_PORT = 5558;
     public static final int UDP_DIRECT_NOTIFY_PORT = 5557;
-//test commit
+
+    private static final long CONTROL_PANEL_PERIOD = 100;
 
     private ITapeControl tc;
     private UartCode uartCode;
@@ -33,6 +36,10 @@ public class EffectsManager implements TcpDirectFinishedListener{
     private boolean tcpDirectMode;
     private DeviceUID deviceUID;
 
+    private int controlPanelIntensity;
+
+    private Timer controlPanelScheduler;
+
     private IEffect effectBeforeTcpDirect;
 
     public EffectsManager (ITapeControl tc, DeviceUID duid, IAlarmController alarmController, Logger logger){
@@ -40,8 +47,27 @@ public class EffectsManager implements TcpDirectFinishedListener{
         this.tc = tc;
         this.alarmController = alarmController;
         this.logger = logger;
+        this.uartCode = new UartCode();
+        initControlPanelScheduler();
         setTcpDirectMode(false);
         listenForTcpDirectStart();
+    }
+
+    private void initControlPanelScheduler(){
+        controlPanelScheduler = new Timer();
+        controlPanelScheduler.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                //Check for update..
+                int newVal = uartCode.getControlPanelIntensity();
+                if (newVal != controlPanelIntensity){
+                    controlPanelIntensity = newVal;
+                    if (currentEffect != null){
+                        currentEffect.setIntensity(controlPanelIntensity);
+                    }
+                }
+            }
+        }, 0, CONTROL_PANEL_PERIOD);
     }
 
     /**
