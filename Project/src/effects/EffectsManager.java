@@ -63,7 +63,6 @@ public class EffectsManager implements TcpDirectFinishedListener{
                 int delta = Math.abs(newVal - controlPanelIntensity);
                 if (delta > 0){
                     controlPanelIntensity = newVal;
-                    logger.writeMessage(this, String.format("Set intensity: %d%%", controlPanelIntensity));
                     if (currentEffect != null){
                         currentEffect.setIntensity(controlPanelIntensity, delta < 50 );
                     }
