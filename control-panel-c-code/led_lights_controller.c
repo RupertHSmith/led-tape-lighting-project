@@ -2,8 +2,13 @@
 
 #include "os.h"
 #include "ui_functions.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
-
+void usart_init_interrupts();
+int read_uart(int);
+void process_input(char*);
+bool process_char(char);
 int blink(int);
 int update_dial(int);
 int collect_delta(int);
@@ -12,21 +17,160 @@ int check_switches(int);
 
 FIL File;                   /* FAT File */
 
-int position = 0;
+volatile bool positionChanged = true;
+volatile int position = 0;
+
+volatile char inputBuffer[4];
+volatile uint8_t bufferPos;
+
+volatile bool readingString;
+volatile bool readingStartChars;
+volatile bool readingEndChars;
+
+volatile uint8_t receivedStartChars;
+volatile uint8_t receivedEndChars;
 
 
 
 void main(void) {
     os_init();
 
+
+	bufferPos = 0;
+	readingString = false;
+	readingStartChars = true;
+	readingEndChars = false;
+	receivedStartChars = 0;
+	receivedEndChars = 0;
+
 	init_ui_functions();
-    os_add_task( blink,            30, 1);
-    os_add_task( collect_delta,   25, 1);
-    os_add_task( check_switches,  100, 1);	
+	usart_init_interrupts();
+    /* Process UART char every ms */
+	os_add_task( read_uart, 15, 1);
+	os_add_task( collect_delta,   30, 1);
+    os_add_task( check_switches,  90, 1);	
 
     sei();
     for(;;){}
 
+}
+
+/* MOVE THIS TO ANOTHER FILE AT SOME POINT */
+
+void usart_init_interrupts()
+{
+	UCSR1B |= _BV(RXCIE1);
+}
+
+ISR(USART1_RX_vect)
+{ 
+	/* Disable interrupts */
+	cli();
+
+	/* UDR1 must always be read or the ISR will be immediately called after terminating */
+	uint8_t received_char = UDR1;
+
+	
+	if(process_char(received_char))
+	{
+		/* Then we've read a complete input so process this input buffer */
+		process_input(inputBuffer);
+	}	
+
+	/* enable interrupts */
+	sei();
+}
+
+
+
+/*******************************************/
+
+int read_uart(int state)
+{
+
+	return state;
+}
+
+void process_input(char* string)
+{
+	if (string[0] == 'i')
+	{
+		/* Then it is an intensity request so parse next 3 chars as int */
+		string[4] = '\0'; 			/* we must terminate the string */
+		int intensityVal = atoi(string + 1);
+		if (intensityVal >= 0 && intensityVal <= 100)
+		{
+			position = intensityVal;
+			positionChanged = true;
+		}
+	}
+}
+
+bool process_char(char dat)
+{
+	if (readingStartChars)
+	{
+		if (dat == '<')
+		{
+			receivedStartChars += 1;
+			if (receivedStartChars == 3)
+			{
+				/* we've received all the start chars so switch to read string mode */
+				readingStartChars = false;
+				readingString = true;
+				bufferPos = 0;
+			}
+		}
+		else 
+		{
+			receivedStartChars = 0;
+		}
+	}
+	else if (readingEndChars)
+	{
+		if (dat == '>')
+		{
+			receivedEndChars += 1;
+			if (receivedEndChars == 3)
+			{
+				/* Then we accept this string so set vars and return true */
+				readingStartChars = true;
+				readingEndChars = false;
+				readingString = false;
+				receivedStartChars = 0;
+				receivedEndChars = 0;
+				bufferPos = 0;
+				return true;
+			}
+		}
+		else 
+		{
+			//Otherwise we reset all vars and counters and start reading string again
+			readingStartChars = true;
+			readingEndChars = false;
+			readingString = false;
+			receivedStartChars = 0;
+			receivedEndChars = 0;
+			bufferPos = 0;
+		}
+
+	}
+	else if (readingString)
+	{
+		if (dat == '>')		/* Then we've read the string - now begin counting end chars */
+		{
+			readingString = false;
+			readingEndChars = true;
+			receivedEndChars = 1;
+		}
+		else 
+		{
+			inputBuffer[bufferPos] = dat;
+			bufferPos++;
+		}
+	}
+	/* We have not read a string */
+	return false;
 }
 
 
@@ -40,14 +184,21 @@ int collect_delta(int state) {
 		else if (position < 0)
 			position = 0;
 
-		//Now set display
-		set_intensity_display(position);	
+		positionChanged = true;
 
 		//output to UART
 		printf("<<<i%03d>>>\n", position);
 
 
 	}
+
+	if (positionChanged)
+	{
+				//Now set display
+		set_intensity_display(position);
+		positionChanged = false;	
+	}
+
 	return state;
 }
 
@@ -75,14 +226,14 @@ int check_switches(int state) {
 		{
 			position = 0;
 			printf("<<<i%03d>>>\n", position);
-			set_intensity_display(position);
+			positionChanged = true;
 		}
 		else 
 		{
 			//otherwise lights already off so set intensity to max
 			position = 100;
 			printf("<<<i%03d>>>\n", position);
-			set_intensity_display(position);
+			positionChanged = true;
 		}
 
 		//set_intensity_display(57);

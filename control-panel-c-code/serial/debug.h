@@ -46,8 +46,14 @@ int uputchar1(char c, FILE *stream)
 
 int ugetchar1(FILE *stream)
 {
-	while(!(UCSR1A & _BV(RXC1)));
-	return UDR1;
+	/* unblock this method */
+	//while(!(UCSR1A & _BV(RXC1)));
+
+	if (UCSR1A & _BV(RXC1))
+		return UDR1;
+	else
+		return 0;
+
 }
 
 void init_debug_uart1(void)
