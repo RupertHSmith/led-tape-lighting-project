@@ -3,6 +3,7 @@ package common;
 import java.io.IOException;
 
 public class UartCode{
+	public native void setControlPanelIntensity();
 	public native int getControlPanelIntensity();
 	public native void main();
 	
@@ -10,14 +11,14 @@ public class UartCode{
 		UartCode uart = new UartCode();
 		uart.main();
 	}*/
-
+/*
 	static {
-		System.out.println("ATTEMPTING TO LOAD UART 10 26");
+		System.out.println("ATTEMPTING TO LOAD UART 18 13");
 		try {
 			NativeUtils.loadLibraryFromJar("/libUartCode.so");
 		} catch (IOException e){
 			e.printStackTrace();
 		}
 		System.out.println("LOADED UART");
-	}
+	}*/
 }
