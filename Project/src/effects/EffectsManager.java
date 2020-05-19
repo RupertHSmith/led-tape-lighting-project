@@ -391,6 +391,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
                             break;
                     }
                     logger.writeMessage(this, deviceState.getType());
+                    uartCode.setControlPanelIntensity(deviceState.getIntensity());
                 }
             } catch (ClassCastException e) {
                 logger.writeError(this, e);

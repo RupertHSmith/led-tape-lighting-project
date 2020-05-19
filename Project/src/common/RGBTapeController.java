@@ -41,7 +41,7 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
                 uartCode.main();
             }
         })).start();
-
+/*
         (new Thread(new Runnable() {
             @Override
             public void run() {
@@ -55,41 +55,49 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
                 }
             }
         })).start();
+*/
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e){
+            e.printStackTrace();
+        }
+
+
 
 
         System.out.println("Beginning logging...");
 
+        try {
+            logger = new Logger();
+            logger.writeMessage( this,"Logging began...");
+
             try {
-                logger = new Logger();
-                logger.writeMessage( this,"Logging began...");
+                duid = new DeviceUID("rupertrgbtape","SMD5050 RGB Tape 5m");
 
-                try {
-                    duid = new DeviceUID("rupertrgbtape","SMD5050 RGB Tape 5m");
-
-                } catch (DeviceUID.InvalidUIDException e){
-                    logger.writeError(this,e);
-                }
-
-                try {
-                    DatabaseHandler handler = new DatabaseHandler(this, logger);
-                    effectsManager = new EffectsManager(new TapeControl(logger), duid, this, logger);
-                    new Thread(this).start();
-
-                    while (true){
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e){
-                            logger.writeError(this, e);
-                        }
-                    }
-
-                } catch (IOException e){
-                    logger.writeError(RGBTapeController.class.getSimpleName(),e);
-                }
-            } catch (IOException e){
-                System.out.println("Logging failed:");
-                e.printStackTrace();
+            } catch (DeviceUID.InvalidUIDException e){
+                logger.writeError(this,e);
             }
+
+            try {
+                DatabaseHandler handler = new DatabaseHandler(this, logger);
+                effectsManager = new EffectsManager(new TapeControl(logger), duid, this, logger);
+                new Thread(this).start();
+
+                while (true){
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e){
+                        logger.writeError(this, e);
+                    }
+                }
+
+            } catch (IOException e){
+                logger.writeError(RGBTapeController.class.getSimpleName(),e);
+            }
+        } catch (IOException e){
+            System.out.println("Logging failed:");
+            e.printStackTrace();
+        }
     }
 
     private synchronized List<Alarm> getLocalAlarms(){
