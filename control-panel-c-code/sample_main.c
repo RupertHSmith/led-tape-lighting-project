@@ -21,7 +21,7 @@ void main(void) {
 
 	init_ui_functions();
     os_add_task( blink,            30, 1);
-    os_add_task( collect_delta,   100, 1);
+    os_add_task( collect_delta,   25, 1);
     os_add_task( check_switches,  100, 1);	
 
     sei();
