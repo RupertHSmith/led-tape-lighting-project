@@ -26,7 +26,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
     public static final int UDP_DIRECT_REQUEST_PORT = 5558;
     public static final int UDP_DIRECT_NOTIFY_PORT = 5557;
 
-    private static final long CONTROL_PANEL_PERIOD = 50;
+    private static final long CONTROL_PANEL_PERIOD = 25;
 
     private ITapeControl tc;
     private UartCode uartCode;
