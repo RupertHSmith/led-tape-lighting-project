@@ -9,16 +9,18 @@ import effects.CustomEffect;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class DeviceStateListener implements Runnable{
+public class DeviceStateListener implements Runnable, IUpdateDatabase{
     private Logger logger;
     private DatabaseListener databaseListener;
 
     private ServerSocket serverSocket;
     private Socket client;
     private BufferedReader in;
+    private PrintWriter out;
 
     public DeviceStateListener(DatabaseListener databaseListener, Logger logger) throws IOException {
         this.logger = logger;
@@ -30,6 +32,8 @@ public class DeviceStateListener implements Runnable{
         Socket client = serverSocket.accept();
         logger.writeMessage(this,"Connection received on port 5555");
         in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        out = new PrintWriter(client.getOutputStream(), true);
+
 
     }
 
@@ -41,6 +45,12 @@ public class DeviceStateListener implements Runnable{
             return 0;
         }
 
+    }
+
+    public void writeDeviceState(boolean standby, int intensity){
+        char standbyChar = standby ? '1' : '0';
+        out.print(String.format("|%c%03d|", standbyChar,intensity));
+        out.flush();
     }
 
     @Override
