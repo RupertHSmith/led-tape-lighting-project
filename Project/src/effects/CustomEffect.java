@@ -18,6 +18,7 @@ public class CustomEffect implements IEffect, Runnable{
     private String owner;
     private Long speed;
     private TreeMap<String, ArrayList<Long>> stops;
+    private TreeMap<String, ArrayList<Long>> unalteredStops;
     private int intensity;
     private Logger logger;
 
@@ -27,6 +28,7 @@ public class CustomEffect implements IEffect, Runnable{
     }
 
     public void setStops(HashMap<String, ArrayList<Long>> stops) {
+        this.unalteredStops = new TreeMap<>(stops);
         this.stops = new TreeMap<>(stops);
     }
 
@@ -65,20 +67,26 @@ public class CustomEffect implements IEffect, Runnable{
 
     @Override
     public void setIntensity(int intensity, boolean snap) {
-
+        if (intensity != this.intensity) {
+            setIntensity(intensity);
+        }
     }
 
     public void setIntensity(int intensity){
-        this.intensity = intensity;
+        if (unalteredStops == null)
+            unalteredStops = stops;
+        if (unalteredStops != null) {
+            this.intensity = intensity;
 
-        TreeMap<String, ArrayList<Long>> newStops = new TreeMap<>();
+            TreeMap<String, ArrayList<Long>> newStops = new TreeMap<>();
 
-        for (String entry : stops.keySet()){
-            ArrayList<Long> newColour = LedState.applyIntensity(stops.get(entry), intensity);
-            newStops.put(entry, newColour);
+            for (String entry : unalteredStops.keySet()) {
+                ArrayList<Long> newColour = LedState.applyIntensity(unalteredStops.get(entry), intensity);
+                newStops.put(entry, newColour);
+            }
+
+            stops = newStops;
         }
-
-        stops = newStops;
     }
 
     public void setLogger(Logger logger){
