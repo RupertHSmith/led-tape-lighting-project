@@ -37,6 +37,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
     private DeviceUID deviceUID;
 
     private int controlPanelIntensity;
+    private boolean controlPanelEnabled;
 
     private Timer controlPanelScheduler;
 
@@ -48,6 +49,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
         this.alarmController = alarmController;
         this.logger = logger;
         this.uartCode = new UartCode();
+        controlPanelEnabled = false;
         initControlPanelScheduler();
         setTcpDirectMode(false);
         listenForTcpDirectStart();
@@ -292,6 +294,11 @@ public class EffectsManager implements TcpDirectFinishedListener{
         //We do not switch effects if we are in TCP direct mode
         if (!isTcpDirectMode()) {
             try {
+                if(!controlPanelEnabled){
+                    controlPanelEnabled = true;
+                    uartCode.setControlPanelPageIntensity(deviceState.getIntensity());
+                }
+
                 if (deviceState.isStandby()) {
                     if (currentEffect == null) {
                         changeEffect(new Standby(tc, alarmController, 2, alarmController.getAlarms(), logger));
