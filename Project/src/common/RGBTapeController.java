@@ -32,7 +32,7 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
     }
 
     public RGBTapeController (){
-        /* TESTING CODE */
+        /* INIT MAIN */
         UartCode uartCode = new UartCode();
 
         (new Thread(new Runnable() {
@@ -41,29 +41,6 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
                 uartCode.main();
             }
         })).start();
-/*
-        (new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (;;){
-                    System.out.println("UART VAL: " + uartCode.getControlPanelIntensity() + " retrieved");
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e){
-                        e.printStackTrace();
-                    }
-                }
-            }
-        })).start();
-*/
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e){
-            e.printStackTrace();
-        }
-
-
-
 
         System.out.println("Beginning logging...");
 
@@ -80,7 +57,7 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
 
             try {
                 DatabaseHandler handler = new DatabaseHandler(this, logger);
-                effectsManager = new EffectsManager(new TapeControl(logger), duid, this, logger);
+                effectsManager = new EffectsManager(new TapeControl(logger), duid, this, logger, handler.getUpdateDatabaseController());
                 new Thread(this).start();
 
                 while (true){

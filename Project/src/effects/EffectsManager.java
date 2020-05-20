@@ -2,6 +2,7 @@ package effects;
 
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import common.*;
+import database.IUpdateDatabase;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -32,6 +33,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
     private UartCode uartCode;
     private IEffect currentEffect;
     private IAlarmController alarmController;
+    private IUpdateDatabase updateDatabase;
     private Logger logger;
     private boolean tcpDirectMode;
     private DeviceUID deviceUID;
@@ -43,11 +45,12 @@ public class EffectsManager implements TcpDirectFinishedListener{
 
     private IEffect effectBeforeTcpDirect;
 
-    public EffectsManager (ITapeControl tc, DeviceUID duid, IAlarmController alarmController, Logger logger){
+    public EffectsManager (ITapeControl tc, DeviceUID duid, IAlarmController alarmController, Logger logger, IUpdateDatabase updateDatabase){
         deviceUID = duid;
         this.tc = tc;
         this.alarmController = alarmController;
         this.logger = logger;
+        this.updateDatabase = updateDatabase;
         this.uartCode = new UartCode();
         controlPanelEnabled = false;
         initControlPanelScheduler();
@@ -296,7 +299,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
             try {
                 if(!controlPanelEnabled){
                     controlPanelEnabled = true;
-                    uartCode.setControlPanelPageIntensity(deviceState.getIntensity());
+                    uartCode.setControlPanelPageIntensity(55);
                 }
 
                 if (deviceState.isStandby()) {
