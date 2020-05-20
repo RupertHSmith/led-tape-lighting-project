@@ -32,7 +32,7 @@ public class SpectrumCycling implements IEffect, Runnable{
         this.transition = transition;
         this.speed = speed;
         this.intensity = intensity;
-        terminated = false;
+        init();
 
         applyIntensities(intensity);
 
@@ -78,7 +78,7 @@ public class SpectrumCycling implements IEffect, Runnable{
 
     @Override
     public void init() {
-
+        terminated = false;
     }
 
     @Override

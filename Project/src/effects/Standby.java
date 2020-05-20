@@ -42,6 +42,7 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
 
         alarmComplete = false;
         setAlarmCancelled(false);
+        init();
 
         if(alarms != null){
             this.alarms = alarms;
@@ -102,7 +103,7 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
 
     @Override
     public void init() {
-
+        terminated = false;
     }
 
     @Override

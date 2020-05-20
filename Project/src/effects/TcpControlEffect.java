@@ -63,7 +63,7 @@ public class TcpControlEffect implements IEffect, Runnable{
 
     @Override
     public void init() {
-
+        terminated = false;
     }
 
     @Override

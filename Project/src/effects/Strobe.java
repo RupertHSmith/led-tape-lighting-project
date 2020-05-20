@@ -33,7 +33,7 @@ public class Strobe implements IEffect, Runnable {
 
         calculateTimeBetweenFlash(speed);
 
-        terminated = false;
+        init();
     }
 
     private void calculateTimeBetweenFlash(int speed){
@@ -50,7 +50,7 @@ public class Strobe implements IEffect, Runnable {
 
     @Override
     public void init() {
-
+        terminated = false;
     }
 
     @Override

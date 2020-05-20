@@ -69,7 +69,10 @@ public class Breathing implements IEffect, Runnable {
 
     @Override
     public void setIntensity(int intensity, boolean snap) {
-
+        if (this.intensity != intensity) {
+            this.intensity = intensity;
+            setAppliedColour(LedState.applyIntensity(unalteredColour, intensity));
+        }
     }
 
     public int getIntensity(){

@@ -11,6 +11,8 @@ public class StaticEffect implements IEffect, Runnable {
     private int intensity;
     private Logger logger;
 
+    private boolean terminated;
+
     //Do not directly mutate this as need synchronized access.
     private boolean transitioning;
 
@@ -32,7 +34,7 @@ public class StaticEffect implements IEffect, Runnable {
         this.transition = transition;
         this.intensity = intensity;
         this.colour = LedState.applyIntensity(staticColour, intensity);
-
+        init();
 
 
 
@@ -63,7 +65,7 @@ public class StaticEffect implements IEffect, Runnable {
 
     @Override
     public void init() {
-
+        terminated = false;
     }
 
     @Override
@@ -72,6 +74,7 @@ public class StaticEffect implements IEffect, Runnable {
      */
     public LedState terminate() {
         //release control from this effect
+        terminated = true;
         return tapeControl.halt();
     }
 

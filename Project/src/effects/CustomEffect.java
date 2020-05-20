@@ -86,7 +86,7 @@ public class CustomEffect implements IEffect, Runnable{
     }
 
     public CustomEffect(){
-        this.terminated = false;
+        init();
     }
 
 
@@ -190,7 +190,7 @@ public class CustomEffect implements IEffect, Runnable{
 
     @Override
     public void init() {
-
+        terminated = false;
     }
 
     @Override

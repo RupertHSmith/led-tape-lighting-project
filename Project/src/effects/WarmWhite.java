@@ -11,7 +11,7 @@ public class WarmWhite implements Runnable, IEffect {
     private int intensity;
     private LedState colour;
     private Logger logger;
-
+    private boolean terminated;
 
     public WarmWhite(ITapeControl tapeControl, int intensity, int transition, Logger logger) throws InvalidTransitionTimeException {
         this.logger = logger;
@@ -22,6 +22,7 @@ public class WarmWhite implements Runnable, IEffect {
         this.transition = transition;
         this.intensity = intensity;
         this.colour = LedState.applyIntensity(colour, intensity);
+        init();
     }
 
     public int getIntensity (){
@@ -39,7 +40,7 @@ public class WarmWhite implements Runnable, IEffect {
 
     @Override
     public void init() {
-
+        terminated = false;
     }
 
     @Override
@@ -50,6 +51,7 @@ public class WarmWhite implements Runnable, IEffect {
     @Override
     public LedState terminate() {
         //release control from this effect
+        terminated = true;
         return tapeControl.halt();
     }
 
