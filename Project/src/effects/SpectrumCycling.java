@@ -23,6 +23,14 @@ public class SpectrumCycling implements IEffect, Runnable{
     private LedState STAGE_5 = new LedState(0,0,255);
     private LedState STAGE_6 = new LedState(255,0,255);
 
+
+    private LedState unaltered_STAGE_1 = new LedState(255,0,0);
+    private LedState unaltered_STAGE_2 = new LedState(255,255,0);
+    private LedState unaltered_STAGE_3 = new LedState(0,255,0);
+    private LedState unaltered_STAGE_4 = new LedState(0,255,255);
+    private LedState unaltered_STAGE_5 = new LedState(0,0,255);
+    private LedState unaltered_STAGE_6 = new LedState(255,0,255);
+
     public SpectrumCycling(ITapeControl tapeControl, int speed , int intensity, int transition, Logger logger) throws InvalidTransitionTimeException, TapeInUseException{
         this.logger = logger;
         if (transition < 0 | transition > 10)
@@ -41,7 +49,12 @@ public class SpectrumCycling implements IEffect, Runnable{
 
     @Override
     public void setIntensity(int intensity, boolean snap) {
-
+        STAGE_1 = LedState.applyIntensity(unaltered_STAGE_1, intensity);
+        STAGE_2 = LedState.applyIntensity(unaltered_STAGE_2, intensity);
+        STAGE_3 = LedState.applyIntensity(unaltered_STAGE_3, intensity);
+        STAGE_4 = LedState.applyIntensity(unaltered_STAGE_4, intensity);
+        STAGE_5 = LedState.applyIntensity(unaltered_STAGE_5, intensity);
+        STAGE_6 = LedState.applyIntensity(unaltered_STAGE_6, intensity);
     }
 
     private void applyIntensities(int intensity){
