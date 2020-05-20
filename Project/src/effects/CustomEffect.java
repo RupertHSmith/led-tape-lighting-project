@@ -85,7 +85,9 @@ public class CustomEffect implements IEffect, Runnable{
         this.logger = logger;
     }
 
-    public CustomEffect(){}
+    public CustomEffect(){
+        this.terminated = false;
+    }
 
 
     public void setTapeControl(ITapeControl tapeControl){
