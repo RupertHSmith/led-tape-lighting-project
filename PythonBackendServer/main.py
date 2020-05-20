@@ -1,17 +1,41 @@
 #!/usr/bin/python
-import os
+
 import firebase_admin
 import google as google
 import time
 import socket
 import json
 from firebase_admin import credentials, firestore
+from threading import Thread
 
 import logging
 
+class TcpListener(Thread):
+    def __init__(self, socket, db):
+        Thread.__init__(self)
+        self.socket = socket
+        self.db = db
+        self.daemon = True
+        self.start()
+    def run(self):
+        while True:
+            try:
+                dat = self.socket.recv(6)
+                start_pipe = dat[:1]
+                standby = (dat[1:2] == '1')
+                intensity = int(dat[2:5])
+                end_pipe = dat[5:6]
+                if start_pipe == b'|' and end_pipe == b'|':
+                    #Attempt to add to database
+                    print('Standby: {}, Intensity: {}'.format(standby, intensity))
+                    doc_ref = self.db.collection(u'devices').document(u'VLUaKArgEQ2oENfZs9WE')
+                    doc_ref.update({u'standby': standby})
+                    doc_ref.update({u'intensity': intensity})
 
+            except IOError as e:
+                print("IOError: ", e)
+                time.sleep(2)
 class Listeners:
-
     def __init__(self):
         logging.basicConfig()
         self.logger = logging.getLogger('logger')
@@ -22,7 +46,6 @@ class Listeners:
         ALARM_SOCKET_PORT = 5556
 
         device_socket_not_connected = True
-
         while device_socket_not_connected:
             try:
                 self.device_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,6 +54,9 @@ class Listeners:
             except:
                 print('connection refused')
                 time.sleep(2)
+
+
+
 
         alarm_socket_not_connected = True
         while alarm_socket_not_connected:
@@ -42,15 +68,16 @@ class Listeners:
                 print('connection refused')
                 time.sleep(2)
 
-            self.REMOTE_SERVER = "www.google.co.uk"
+        self.REMOTE_SERVER = "www.google.co.uk"
 
-        # todo /home/pi/RGBProject/
-            cred = credentials.Certificate('lightingproject-b4e13-firebase-adminsdk-s1ody-d6f69bf0cb.json')
-            default_app = firebase_admin.initialize_app(cred)
+        cred = credentials.Certificate('/home/pi/RGBProject/lightingproject-b4e13-firebase-adminsdk-s1ody-d6f69bf0cb.json')
+        default_app = firebase_admin.initialize_app(cred)
 
-            self.db = firestore.client()
-            self.start_snapshot_alarm()
-            self.start_snapshot_device()
+        self.db = firestore.client()
+        # now hook up receive data loop
+        TcpListener(self.device_socket, self.db)
+        self.start_snapshot_alarm()
+        self.start_snapshot_device()
 
     def is_connected(self, hostname):
         try:
@@ -60,7 +87,7 @@ class Listeners:
             return True
         except:
             pass
-            return False
+        return False
 
     def on_snapshot_device(self, doc_snapshot, changes, read_time):
         for doc in doc_snapshot:
@@ -87,7 +114,7 @@ class Listeners:
 
                 col_query = self.db.collection(u'users').document(u'pilton').collection(u'alarms')
 
-                # watch document
+                #watch document
                 self.query_watch = col_query.on_snapshot(self.on_snapshot_alarms)
                 break
             else:
@@ -105,14 +132,15 @@ class Listeners:
                 self.logger.warning('No Connection')
 
 
+
 if __name__ == '__main__':
     try:
         listeners_object = Listeners()
-        while (True):
-            if (listeners_object.query_watch._closed):
+        while(True):
+            if(listeners_object.query_watch._closed):
                 listeners_object.start_snapshot_alarm()
-
-            if (listeners_object.doc_watch._closed):
+            
+            if(listeners_object.doc_watch._closed):
                 listeners_object.start_snapshot_device()
             time.sleep(1)
     except Exception as err:

@@ -12,7 +12,7 @@ public class BmpToHex {
     public BmpToHex(String imageFolder, String output){
         this.imagePath = imageFolder;
         this.outputFile = output;
-        
+
 
     }
 

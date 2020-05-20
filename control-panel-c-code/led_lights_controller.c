@@ -23,7 +23,7 @@ FIL File;                   /* FAT File */
 volatile bool positionChanged = true;
 volatile int position = 0;
 
-volatile char inputBuffer[4];
+volatile char inputBuffer[10];
 volatile uint8_t bufferPos;
 
 volatile bool readingString;
@@ -32,6 +32,8 @@ volatile bool readingEndChars;
 
 volatile uint8_t receivedStartChars;
 volatile uint8_t receivedEndChars;
+
+volatile CurrentPage current_display_page;
 
 
 
@@ -45,6 +47,7 @@ void main(void) {
 	readingEndChars = false;
 	receivedStartChars = 0;
 	receivedEndChars = 0;
+	current_display_page = Load;
 
 	init_ui_functions();
 	usart_init_interrupts();
@@ -64,14 +67,13 @@ void usart_init_interrupts()
 	UCSR1B |= _BV(RXCIE1);
 }
 
-ISR(USART1_RX_vect)
+ISR(USART1_RX_vect)			/* Although the methods in ISR are large, they are fast and simple */
 { 
 	/* Disable interrupts */
 	cli();
 
 	/* UDR1 must always be read or the ISR will be immediately called after terminating */
 	uint8_t received_char = UDR1;
-
 	if(process_char(received_char))
 	{
 		/* Then we've read a complete input so process this input buffer */
@@ -85,23 +87,26 @@ ISR(USART1_RX_vect)
 void process_input(char* string)
 {
 	if (string[0] == UART_SET_INTENSITY )
-	{
+	{		
+
 		/* Then it is an intensity request so parse next 3 chars as int */
 		string[4] = '\0'; 			/* we must terminate the string */
 		int intensityVal = atoi(string + 1);
+
 		if (intensityVal >= 0 && intensityVal <= 100)
 		{
 			position = intensityVal;
 			positionChanged = true;
 		}
+
 	}
 	else if (string[0] == UART_LOAD_MODE)
 	{
-		set_ui_page(Load);
+		current_display_page = Load;
 	}
 	else if (string[0] == UART_INTENSITY_MODE)
 	{
-		set_ui_page(Intensity);
+		current_display_page = Intensity;
 	}
 }
 
@@ -174,28 +179,36 @@ bool process_char(char dat)
 
 
 int collect_delta(int state) {
-	int delta = os_enc_delta();
-	if (delta)
-	{	
-		position += delta;
-		if (position > 100)
-			position = 100;
-		else if (position < 0)
-			position = 0;
-
-		positionChanged = true;
-
-		//output to UART
-		printf("<<<i%03d>>>\n", position);
-	}
-
-	if (positionChanged)
+	/* possibly add this as a new task to prevent encoder missing reads */
+	if (current_display_page != get_ui_mode().page)
 	{
-		//Now set display
-		set_intensity_display(position);
-		positionChanged = false;	
+		set_ui_page(current_display_page);
 	}
+	int delta = os_enc_delta();
+	ui_mode currUiMode = get_ui_mode();
+	if (currUiMode.page == Intensity)
+	{
+		if (delta)
+		{	
+			position += delta;
+			if (position > 100)
+				position = 100;
+			else if (position < 0)
+				position = 0;
 
+			positionChanged = true;
+
+			//output to UART
+			printf("<<<i%03d>>>\n", position);
+		}
+
+		if (positionChanged)
+		{
+			//Now set display
+			set_intensity_display(position);
+			positionChanged = false;	
+		}
+	}
 	return state;
 }
 
