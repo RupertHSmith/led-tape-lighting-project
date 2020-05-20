@@ -17,7 +17,7 @@ void os_init(void) {
     CLKPR = (1 << CLKPCE);
     CLKPR = 0;
 
-    DDRB  |=  _BV(PB7);  	 /* LED as output */
+    DDRB  &=  ~_BV(PB7);  	 /* Disable LED */
 
     init_debug_uart1();
     init_lcd();

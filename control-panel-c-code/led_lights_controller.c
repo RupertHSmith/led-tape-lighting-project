@@ -5,11 +5,14 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define UART_LOAD_MODE 'l'
+#define UART_INTENSITY_MODE 's'
+#define UART_SET_INTENSITY 'i'
+
 void usart_init_interrupts();
 int read_uart(int);
 void process_input(char*);
 bool process_char(char);
-int blink(int);
 int update_dial(int);
 int collect_delta(int);
 int check_switches(int);
@@ -46,8 +49,7 @@ void main(void) {
 	init_ui_functions();
 	usart_init_interrupts();
     /* Process UART char every ms */
-	os_add_task( read_uart, 15, 1);
-	os_add_task( collect_delta,   30, 1);
+	os_add_task( collect_delta,   15, 1);
     os_add_task( check_switches,  90, 1);	
 
     sei();
@@ -70,7 +72,6 @@ ISR(USART1_RX_vect)
 	/* UDR1 must always be read or the ISR will be immediately called after terminating */
 	uint8_t received_char = UDR1;
 
-	
 	if(process_char(received_char))
 	{
 		/* Then we've read a complete input so process this input buffer */
@@ -81,19 +82,9 @@ ISR(USART1_RX_vect)
 	sei();
 }
 
-
-
-/*******************************************/
-
-int read_uart(int state)
-{
-
-	return state;
-}
-
 void process_input(char* string)
 {
-	if (string[0] == 'i')
+	if (string[0] == UART_SET_INTENSITY )
 	{
 		/* Then it is an intensity request so parse next 3 chars as int */
 		string[4] = '\0'; 			/* we must terminate the string */
@@ -103,6 +94,14 @@ void process_input(char* string)
 			position = intensityVal;
 			positionChanged = true;
 		}
+	}
+	else if (string[0] == UART_LOAD_MODE)
+	{
+		set_ui_page(Load);
+	}
+	else if (string[0] == UART_INTENSITY_MODE)
+	{
+		set_ui_page(Intensity);
 	}
 }
 
@@ -188,13 +187,11 @@ int collect_delta(int state) {
 
 		//output to UART
 		printf("<<<i%03d>>>\n", position);
-
-
 	}
 
 	if (positionChanged)
 	{
-				//Now set display
+		//Now set display
 		set_intensity_display(position);
 		positionChanged = false;	
 	}
@@ -278,51 +275,5 @@ int check_switches(int state) {
 
 	}
 
-	return state;
-}
-
-
-
-
-int blink(int state) {
-	static int light = 0;
-	uint8_t level;
-
-	if (light < -120) {
-		state = 1;
-	} else if (light > 254) {
-		state = -20;
-	}
-
-
-	/* Compensate somewhat for nonlinear LED
-           output and eye sensitivity:
-        */
-	if (state > 0) {
-		if (light > 40) {
-			state = 2;
-		}
-		if (light > 100) {
-			state = 5;
-		}
-	} else {
-		if (light < 180) {
-			state = -10;
-		}
-		if (light < 30) {
-			state = -5;
-		}
-	}
-	light += state;
-
-	if (light < 0) {
-		level = 0;
-	} else if (light > 255) {
-		level = 255;
-	} else {
-		level = light;
-	}
-
-	os_led_brightness(level);
 	return state;
 }
