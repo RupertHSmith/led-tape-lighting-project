@@ -8,8 +8,7 @@ ui_mode current_ui_mode;
 
 void init_ui_functions()
 {
-    current_ui_mode.page = Intensity;
-    set_ui_page(current_ui_mode.page);
+    set_ui_page(Load);
 }
 
 ui_mode get_ui_mode()
@@ -19,6 +18,7 @@ ui_mode get_ui_mode()
 
 void set_ui_page(CurrentPage page)
 {
+    current_ui_mode.page = page;
     if (page == Load)
     {
         clear_screen();
