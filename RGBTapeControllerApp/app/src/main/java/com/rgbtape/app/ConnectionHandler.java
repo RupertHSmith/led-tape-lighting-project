@@ -17,6 +17,10 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static android.content.ContentValues.TAG;
 
@@ -26,8 +30,29 @@ public class ConnectionHandler implements HomeFragmentConnection, AlarmFragmentC
     private FirebaseFirestore db;
     private CustomEffectListener customEffectListener;
 
+    private ScheduledExecutorService lockouts;
+    private Future<?> databaseLockoutFuture;
+
+
     public ConnectionHandler(){
         db = FirebaseFirestore.getInstance();
+        lockouts = Executors.newSingleThreadScheduledExecutor();
+
+    }
+
+    private void lockoutListeners(){
+        HomeFragment.updateListenersBlocked = true;
+        if (databaseLockoutFuture != null){
+            if (!databaseLockoutFuture.isCancelled())
+                databaseLockoutFuture.cancel(true);
+        }
+        databaseLockoutFuture = lockouts.schedule(new Runnable() {
+            @Override
+            public void run() {
+                HomeFragment.updateListenersBlocked = false;
+            }
+        }, 1, TimeUnit.SECONDS);
+
     }
 
     @Override
@@ -106,12 +131,47 @@ public class ConnectionHandler implements HomeFragmentConnection, AlarmFragmentC
         }
     }
 
+    @Override
+    public void addDeviceStateListener(DeviceStateListener deviceStateListener){
+        db.collection("devices")
+                .addSnapshotListener(new DeviceStateUpdateListener(deviceStateListener));
+    }
+
+    class DeviceStateUpdateListener implements EventListener<QuerySnapshot> {
+        private DeviceStateListener listener;
+        public DeviceStateUpdateListener(DeviceStateListener listener){
+            this.listener = listener;
+        }
+
+        @Override
+        public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+            if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty() && !HomeFragment.updateListenersBlocked){
+
+                for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()){
+                    if (document.exists() && document.getId().equals("VLUaKArgEQ2oENfZs9WE")){
+                        Boolean standby = (Boolean) document.get("standby");
+                        Long speed = (Long) document.get("speed");
+                        Long intensity = (Long) document.get("intensity");
+                        String type = (String) document.get("type");
+
+                        ArrayList<Long> colour = (ArrayList<Long>) document.get("colour");
+                        String customEffectId = ((DocumentReference) document.get("customEffect")).getId();
+
+                        listener.onDeviceStateReceived(standby, speed.intValue(), intensity.intValue(), type, customEffectId, colour.get(0).intValue(), colour.get(1).intValue(), colour.get(2).intValue());
+                    }
+                }
+
+            }
+        }
+    }
+
 
     /**
      * Switches the tape off
      */
     @Override
     public void setStandby(boolean standby) {
+        lockoutListeners();
         DocumentReference device = db.collection("devices").document(DEVICE_UID);
         if (standby) {
             device.update("standby", true);
@@ -122,6 +182,7 @@ public class ConnectionHandler implements HomeFragmentConnection, AlarmFragmentC
 
     @Override
     public void setColour(int r, int g, int b) {
+        lockoutListeners();
         DocumentReference device = db.collection("devices").document(DEVICE_UID);
         ArrayList colour = new ArrayList<>();
         colour.add(r);
@@ -132,18 +193,21 @@ public class ConnectionHandler implements HomeFragmentConnection, AlarmFragmentC
 
     @Override
     public void setIntensity(int intensity) {
+        lockoutListeners();
         DocumentReference device = db.collection("devices").document(DEVICE_UID);
         device.update("intensity", intensity);
     }
 
     @Override
     public void setSpeed(int speed) {
+        lockoutListeners();
         DocumentReference device = db.collection("devices").document(DEVICE_UID);
         device.update("speed", speed);
     }
 
     @Override
     public void setEffect(EffectItem effect) {
+        lockoutListeners();
         DocumentReference device = db.collection("devices").document(DEVICE_UID);
         device.update("type", effect.getType());
 
@@ -155,6 +219,7 @@ public class ConnectionHandler implements HomeFragmentConnection, AlarmFragmentC
 
     @Override
     public void setAlarmListener(String username, AlarmsListener alarmListener) {
+        lockoutListeners();
         db.collection("users").document(username).collection("alarms")
                 .addSnapshotListener(new AlarmCallBackListener(alarmListener));
     }

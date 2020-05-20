@@ -9,6 +9,7 @@ public interface HomeFragmentConnection {
      * @return
      */
     void addEffectListener(String username);
+    void addDeviceStateListener(DeviceStateListener deviceStateListener);
     void setCustomEffectsListener(CustomEffectListener customEffectsListener);
     void requestDeviceState(DeviceStateListener deviceStateListener);
 

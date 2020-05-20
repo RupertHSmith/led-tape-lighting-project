@@ -18,8 +18,12 @@ import com.pes.androidmaterialcolorpickerdialog.ColorPicker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class HomeFragment extends Fragment implements CustomEffectListener, DeviceStateListener {
+    public static boolean updateListenersBlocked = false;
 
     private HomeFragmentConnection homeFragmentConnection;
 
@@ -34,6 +38,9 @@ public class HomeFragment extends Fragment implements CustomEffectListener, Devi
 
     private EffectItem currentEffect;
 
+
+
+
     /**
      * Set instance of home fragment connection so can request info from db.
      * @param homeFragmentConnection The instance
@@ -41,6 +48,8 @@ public class HomeFragment extends Fragment implements CustomEffectListener, Devi
     public HomeFragment(HomeFragmentConnection homeFragmentConnection){
         this.homeFragmentConnection = homeFragmentConnection;
         homeFragmentConnection.setCustomEffectsListener(this);
+        homeFragmentConnection.addDeviceStateListener(this);
+
     }
 
     @Nullable
