@@ -27,6 +27,8 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
 
     private IAlarmListener alarmListener;
 
+    public static boolean lockDatabaseUpdates = false;
+
     public static void main(String[] args){
         new RGBTapeController();
     }
@@ -98,7 +100,8 @@ public class RGBTapeController implements Runnable, IAlarmController, DatabaseLi
     @Override
     public void onDeviceStateReceived(DeviceState deviceState) {
         try {
-            deviceStateQueue.put(deviceState);
+            if (!lockDatabaseUpdates)
+                deviceStateQueue.put(deviceState);
         } catch (InterruptedException e){
             logger.writeError(this,e);
         }

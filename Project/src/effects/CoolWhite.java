@@ -26,8 +26,12 @@ public class CoolWhite implements IEffect, Runnable {
         this.tapeControl = tapeControl;
         this.transition = transition;
         this.intensity = intensity;
-        setTerminated(false);
+        init();
         setAppliedColour(LedState.applyIntensity(unalteredColour, intensity));
+    }
+
+    public void init(){
+        terminated = false;
     }
 
     private void setAppliedColour(LedState colour){

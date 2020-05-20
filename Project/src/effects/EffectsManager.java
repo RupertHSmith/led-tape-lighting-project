@@ -1,6 +1,5 @@
 package effects;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import common.*;
 import database.IUpdateDatabase;
 
@@ -8,9 +7,12 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class EffectsManager implements TcpDirectFinishedListener{
 
@@ -42,6 +44,11 @@ public class EffectsManager implements TcpDirectFinishedListener{
     private boolean controlPanelEnabled;
 
     private Timer controlPanelScheduler;
+  //  private Timer lockouts;
+
+    private ScheduledExecutorService lockouts;
+    private Future<?> databaseLockoutFuture;
+    private Future<?> databaseFloodProtector;
 
     private IEffect effectBeforeTcpDirect;
 
@@ -56,6 +63,10 @@ public class EffectsManager implements TcpDirectFinishedListener{
         initControlPanelScheduler();
         setTcpDirectMode(false);
         listenForTcpDirectStart();
+        lockouts = Executors.newScheduledThreadPool(2);
+
+
+
     }
 
     private void initControlPanelScheduler(){
@@ -69,7 +80,42 @@ public class EffectsManager implements TcpDirectFinishedListener{
                 if (delta > 0){
                     controlPanelIntensity = newVal;
                     if (currentEffect != null){
-                        currentEffect.setIntensity(controlPanelIntensity, delta < 50 );
+                        //Lockout database
+                        //Cancel any existing timeout timers
+                        if (databaseLockoutFuture != null){
+                            if (!databaseLockoutFuture.isCancelled())
+                                databaseLockoutFuture.cancel(true);
+                        }
+
+                        if (databaseFloodProtector != null){
+                            if (!databaseFloodProtector.isCancelled())
+                                databaseFloodProtector.cancel(true);
+                        }
+
+                        RGBTapeController.lockDatabaseUpdates = true;
+                        databaseLockoutFuture = lockouts.schedule(() -> RGBTapeController.lockDatabaseUpdates = false,1, TimeUnit.SECONDS);
+
+                        boolean standby;
+                        if (newVal == 0) {
+                            if (currentEffect != null && !currentEffect.getClass().getSimpleName().equals(STANDBY)) {
+                                System.out.println("STORING PREV EFFECT FOR USE WHEN RESUMING: " + currentEffect.getClass().getSimpleName());
+                                effectBeforeTcpDirect = currentEffect;
+                            }
+                            standby = true;
+                            changeEffect(new Standby(tc, alarmController, 2, alarmController.getAlarms(), logger));
+                        } else {
+                            //if currently standby and we can remember prev effect then switch to this..
+                            if (effectBeforeTcpDirect != null && currentEffect.getClass().getSimpleName().equals(STANDBY)){
+                                System.out.println("RESUMING PREV EFFECT PRE STANDBY: " + effectBeforeTcpDirect.getClass().getSimpleName());
+                                effectBeforeTcpDirect.init();
+                                effectBeforeTcpDirect.setIntensity(controlPanelIntensity, false);
+                                changeEffect(effectBeforeTcpDirect);
+                            }
+                            standby = false;
+                        }
+
+                        databaseFloodProtector = lockouts.schedule(()-> updateDatabase.writeDeviceState(standby, controlPanelIntensity),500, TimeUnit.MILLISECONDS);
+                        currentEffect.setIntensity(controlPanelIntensity, delta < 50);
                     }
                 }
             }
@@ -302,7 +348,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
                     uartCode.setControlPanelPageIntensity(55);
                 }
 
-                if (deviceState.isStandby()) {
+                if (deviceState.isStandby() || deviceState.getIntensity() == 0) {
                     if (currentEffect == null) {
                         changeEffect(new Standby(tc, alarmController, 2, alarmController.getAlarms(), logger));
                     } else if (!currentEffect.getClass().getSimpleName().equals(STANDBY)) {

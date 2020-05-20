@@ -62,6 +62,11 @@ public class TcpControlEffect implements IEffect, Runnable{
     }
 
     @Override
+    public void init() {
+
+    }
+
+    @Override
     public void setIntensity(int intensity, boolean snap) {
 
     }

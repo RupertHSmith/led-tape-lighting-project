@@ -77,6 +77,11 @@ public class SpectrumCycling implements IEffect, Runnable{
     }
 
     @Override
+    public void init() {
+
+    }
+
+    @Override
     public LedState terminate() {
         setTerminated(true);
         return tapeControl.halt();

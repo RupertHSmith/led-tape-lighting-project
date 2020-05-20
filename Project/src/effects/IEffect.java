@@ -13,6 +13,8 @@ public interface IEffect {
      */
     void start() throws TapeInUseException;
 
+    void init();
+
     /**
      * Sets intensity whilst running
      * @param intensity intensity to set

@@ -189,6 +189,11 @@ public class CustomEffect implements IEffect, Runnable{
     }
 
     @Override
+    public void init() {
+
+    }
+
+    @Override
     public LedState terminate() {
         setTerminated(true);
 

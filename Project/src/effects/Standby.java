@@ -101,6 +101,11 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
     }
 
     @Override
+    public void init() {
+
+    }
+
+    @Override
     public LedState terminate() {
         //This just stops the loop
         setTerminated(true);

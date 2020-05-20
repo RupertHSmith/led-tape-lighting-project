@@ -62,6 +62,11 @@ public class StaticEffect implements IEffect, Runnable {
     }
 
     @Override
+    public void init() {
+
+    }
+
+    @Override
     /**
      * This method will have a low cost block
      */

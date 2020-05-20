@@ -34,8 +34,7 @@ public class Breathing implements IEffect, Runnable {
         intensityChanged = false;
         setAppliedColour(LedState.applyIntensity(colour, intensity));
         this.speed = speed;
-
-        terminated = false;
+        init();
     }
 
     private synchronized void setAppliedColour(LedState colour){
@@ -52,6 +51,11 @@ public class Breathing implements IEffect, Runnable {
         tapeControl.setController(this);
 
         new Thread(this).start();
+    }
+
+    @Override
+    public void init() {
+        terminated = false;
     }
 
     public int getSpeed(){
