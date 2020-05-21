@@ -1,3 +1,9 @@
+/*  Author: Rupert Smith
+ *  Licence: This work is licensed under the Creative Commons Attribution License.
+ *           View this license at http://creativecommons.org/about/licenses/
+ */
+
+
 #include "ui_functions.h"
 
 uint8_t intensity_display_digit_1;

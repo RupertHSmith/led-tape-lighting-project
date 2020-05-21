@@ -1,3 +1,9 @@
+/*  Author: Rupert Smith
+ *  Licence: This work is licensed under the Creative Commons Attribution License.
+ *           View this license at http://creativecommons.org/about/licenses/
+ */
+
+
 #include "os.h"
 
 typedef enum { Load, Intensity } CurrentPage;

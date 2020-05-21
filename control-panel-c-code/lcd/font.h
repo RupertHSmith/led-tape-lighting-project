@@ -1,6 +1,7 @@
 /*  Author: Steve Gunn
  * Licence: This work is licensed under the Creative Commons Attribution License.
  *           View this license at http://creativecommons.org/about/licenses/
+ * May 2020 - Modified to add large numerics in font Exo 2 [Rupert Smith]
  */
 
 #include <avr/pgmspace.h>

@@ -4,6 +4,7 @@
  *
  *  
  *  - Jan 2015  Modified for LaFortuna (Rev A, black edition) [KPZ]
+ *  - May 2020  Added method to display large digits [Rupert Smith]
  */
 
 #include <avr/io.h>

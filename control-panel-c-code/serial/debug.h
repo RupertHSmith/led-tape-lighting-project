@@ -3,7 +3,8 @@
  *          View this license at http://creativecommons.org/about/licenses/
  * 
  *
- * Feb 2015: Slightly modified for LaFortuna board, KPZ  
+ * Feb 2015: Slightly modified for LaFortuna board, KPZ
+ * May 2020: Removed new line character replacement [Rupert Smith]  
  *
  *   | PIN | Function      | Connected to                                 |
  *   |-----+---------------+----------------------------------------------|

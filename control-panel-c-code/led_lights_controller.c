@@ -1,4 +1,7 @@
-/* COMP2215 Task 5---SKELETON */
+/*  Author: Rupert Smith
+ *  Licence: This work is licensed under the Creative Commons Attribution License.
+ *           View this license at http://creativecommons.org/about/licenses/
+ */
 
 #include "os.h"
 #include "ui_functions.h"
@@ -245,18 +248,6 @@ int check_switches(int state) {
 			printf("<<<i%03d>>>\n", position);
 			positionChanged = true;
 		}
-
-		//set_intensity_display(57);
-		/*f_mount(&FatFs, "", 0);
-		if (f_open(&File, "myfile.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {
-			f_lseek(&File, f_size(&File));
-			f_printf(&File, "Encoder position is: %d \r\n", position);
-			f_close(&File);
-			display_string("Wrote position\n");
-		} else {
-			display_string("Can't write file! \n");
-		}*/
-
 	}
 
 	if (get_switch_short(_BV(SWC))) {

@@ -67,9 +67,10 @@ int scan_encoder(int state) {
      cli();
      wheel = PINE;
      new = 0;
-     if( wheel  & _BV(ROTB) ) new = 3;
+     if( wheel  & _BV(ROTB) ) 
+         new = 3;
      if( wheel  & _BV(ROTA) )
-	 new ^= 1;		        	/* convert gray to binary */
+	      new ^= 1;		        	/* convert gray to binary */
      diff = last - new;			/* difference last - new */
      if( diff & 1 ){			/* bit 0 = value (1) */
 	     last = new;		       	/* store new as next last */

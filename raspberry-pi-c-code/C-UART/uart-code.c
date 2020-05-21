@@ -1,6 +1,13 @@
 /*
+   Author: Rupert Smith
+   Licence: This work is licensed under the Creative Commons Attribution License.
+          View this license at http://creativecommons.org/about/licenses/
+
+
+	Code snippets taken from:
 	UART communication on Raspberry Pi using C (WiringPi Library)
 	http://www.electronicwings.com
+
 */
 #include <jni.h>
 #include "common_UartCode.h"
@@ -30,10 +37,6 @@ void processString(char* stringToProcess)
 		char* endPntr = stringToProcess;
         stringToProcess[4] = '\0';
 	    control_panel_intensity = strtoumax(stringToProcess + 1, &endPntr, 10);
-
-	/*	printf("Intensity: %d%%\n", control_panel_intensity);
-		fflush(stdout);*/
-
 	}
 }
 
