@@ -1,5 +1,6 @@
 package com.rgbtape.app;
 
+import android.content.Context;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,12 +44,13 @@ import java.util.regex.Pattern;
 import static android.content.ContentValues.TAG;
 
 public class DirectConnectionFragment extends Fragment {
-    private BlockingQueue<TcpPacketContainer> packetQueue = new LinkedBlockingQueue<>();
     private boolean tcpConnectionInProgres = false;
     private boolean buttonLocked = false;
     private InetAddress deviceIp;
     private DatagramSocket socket;
     private BpmCalculator bpmCalculator;
+
+    private final static String TAG = "Direct connection fragment";
 
     private ExecutorService executorService;
 
@@ -59,6 +61,8 @@ public class DirectConnectionFragment extends Fragment {
     private DatagramPacket onBlue;
     private DatagramPacket offFade;
     private DatagramPacket off;
+    private DatagramPacket rebootPacket;
+    private DatagramPacket shutdownPacket;
     byte[] customBrightness;
 
     private Timer timer;
@@ -71,6 +75,12 @@ public class DirectConnectionFragment extends Fragment {
     private static final byte UDP_VERSION = 1;
     private static final int UDP_INIT_PORT = 5558;
     private static final int UDP_PORT = 5557;
+
+    private Context appContext;
+
+    public DirectConnectionFragment(Context appContext){
+        this.appContext = appContext;
+    }
 
     @Nullable
     @Override
@@ -94,8 +104,12 @@ public class DirectConnectionFragment extends Fragment {
 
     private void establishDeviceIp(){
         try {
-
-            String broadCastAddressString = getBroadcastAddressLinux();
+            String broadCastAddressString;
+            try {
+                broadCastAddressString = getBroadcastAddressLinux();
+            } catch (BroadcastAddressNotFoundException e){
+                broadCastAddressString = "192.168.1.255";
+            }
             InetAddress broadcastAddress;
 
             if (broadCastAddressString != null) {
@@ -105,10 +119,14 @@ public class DirectConnectionFragment extends Fragment {
                 broadcastAddress = InetAddress.getByName(DEFAULT_BROADCAST_ADDRESS);
             }
 
+
             if (socket == null) {
                 socket = new DatagramSocket(UDP_PORT);
                 socket.setSoTimeout(SOCKET_TIME_OUT);
             }
+
+            Log.e(TAG, "establishDeviceIp: " + broadCastAddressString);
+//            Toast.makeText(appContext, broadCastAddressString, Toast.LENGTH_SHORT);
 
             byte[] buf = "rupertrgbtape".getBytes();
             DatagramPacket packet = new DatagramPacket(buf, buf.length, broadcastAddress, UDP_INIT_PORT);
@@ -212,22 +230,43 @@ public class DirectConnectionFragment extends Fragment {
     }
 
     private void initShutdownRebootButtons(View view){
-            Button shutdownButton = view.findViewById(R.id.shutdownButton);
-            Button rebootButton = view.findViewById(R.id.rebootButton);
+        Button shutdownButton = view.findViewById(R.id.shutdownButton);
+        Button rebootButton = view.findViewById(R.id.rebootButton);
 
-            shutdownButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    byte[] b ={TcpPacketContainer.SHUTDOWN_PACKET,0,0,0,0};
-              //      addToPacketQueue(b);
-                }
-            });
+
+
 
         rebootButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                byte[] b ={TcpPacketContainer.REBOOT_PACKET,0,0,0,0};
-              //  addToPacketQueue(b);
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run(){
+                        establishDeviceIp();
+                        try {
+                            socket.send(rebootPacket);
+                        } catch (IOException e){
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        });
+
+        shutdownButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run(){
+                        establishDeviceIp();
+                        try {
+                            socket.send(shutdownPacket);
+                        } catch (IOException e){
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         });
     }
@@ -371,6 +410,12 @@ public class DirectConnectionFragment extends Fragment {
         this.offFade = new DatagramPacket(offFade,onWhite.length,deviceIp,UDP_PORT);
         this.off = new DatagramPacket(offSnap,onWhite.length,deviceIp,UDP_PORT);
         this.customBrighnessPacket = new DatagramPacket(customBrightness,onBlue.length,deviceIp,UDP_PORT);
+
+        // Shut down packet
+        byte[] shutdown ={TcpPacketContainer.SHUTDOWN_PACKET,0,0,0,0};
+        this.shutdownPacket = new DatagramPacket(shutdown, shutdown.length, deviceIp, UDP_PORT);
+        byte[] reboot = {TcpPacketContainer.REBOOT_PACKET,0,0,0,0};
+        this.rebootPacket = new DatagramPacket(reboot, reboot.length, deviceIp, UDP_PORT);
     }
 
     class BroadcastAddressNotFoundException extends IOException{

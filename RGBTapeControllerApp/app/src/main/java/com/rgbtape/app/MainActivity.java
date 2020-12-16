@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
     private void initFragments(ConnectionHandler connectionHandler){
         homeFragment = new HomeFragment(connectionHandler);
         alarmsFragment = new AlarmsFragment(connectionHandler);
-        tcpDirectFragment = new DirectConnectionFragment();
+        tcpDirectFragment = new DirectConnectionFragment(getApplicationContext());
 
         if (fragmentManager != null){
             fragmentManager.beginTransaction()
