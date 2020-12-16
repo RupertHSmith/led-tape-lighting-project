@@ -9,6 +9,7 @@ public class Strobe implements IEffect, Runnable {
     private ITapeControl tapeControl;
     private int transition;
     private LedState colour;
+    private LedState unalteredColour;
     private int speed;
     private boolean terminated;
     private int intensity;
@@ -29,11 +30,12 @@ public class Strobe implements IEffect, Runnable {
         this.transition = transition;
         this.intensity = intensity;
         this.colour = LedState.applyIntensity(colour, intensity);
+        this.unalteredColour = colour;
         this.speed = speed;
 
         calculateTimeBetweenFlash(speed);
 
-        terminated = false;
+        init();
     }
 
     private void calculateTimeBetweenFlash(int speed){
@@ -46,6 +48,19 @@ public class Strobe implements IEffect, Runnable {
         tapeControl.setController(this);
 
         new Thread(this).start();
+    }
+
+    @Override
+    public void init() {
+        terminated = false;
+    }
+
+    @Override
+    public void setIntensity(int intensity, boolean snap) {
+        if (intensity != this.intensity){
+            this.intensity = intensity;
+            colour = LedState.applyIntensity(unalteredColour, intensity);
+        }
     }
 
     public int getSpeed() {

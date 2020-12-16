@@ -8,8 +8,12 @@ public class StaticEffect implements IEffect, Runnable {
     private ITapeControl tapeControl;
     private int transition;
     private LedState colour;
+    private LedState unalteredColour;
     private int intensity;
     private Logger logger;
+    private boolean snapIntensityChange = false;
+
+    private boolean terminated;
 
     //Do not directly mutate this as need synchronized access.
     private boolean transitioning;
@@ -27,10 +31,18 @@ public class StaticEffect implements IEffect, Runnable {
         this.transition = transition;
         this.intensity = intensity;
         this.colour = LedState.applyIntensity(staticColour, intensity);
+        this.unalteredColour = staticColour;
+        init();
+    }
 
-
-
-
+    @Override
+    public void setIntensity(int intensity, boolean snap) {
+        if (this.intensity != intensity) {
+            this.intensity = intensity;
+            tapeControl.haltRetainControl();
+            this.snapIntensityChange = snap;
+            this.colour = LedState.applyIntensity(unalteredColour, intensity);
+        }
     }
 
     public int getIntensity(){return this.intensity;}
@@ -57,11 +69,17 @@ public class StaticEffect implements IEffect, Runnable {
     }
 
     @Override
+    public void init() {
+        terminated = false;
+    }
+
+    @Override
     /**
      * This method will have a low cost block
      */
     public LedState terminate() {
         //release control from this effect
+        terminated = true;
         return tapeControl.halt();
     }
 
@@ -70,6 +88,17 @@ public class StaticEffect implements IEffect, Runnable {
         //Run transition
         try {
             tapeControl.smartFade(colour, this);
+            //check for intensity change..
+            while (!terminated) {
+                if (!colour.equals(tapeControl.getColour())){
+                    if (snapIntensityChange){
+                        tapeControl.fadeTo(colour, 0.06f,this);
+                    } else {
+                        tapeControl.smartFade(colour, this);
+                    }
+                }
+
+            }
         } catch (TapeInUseException e){
             logger.writeError(this,e);
         }

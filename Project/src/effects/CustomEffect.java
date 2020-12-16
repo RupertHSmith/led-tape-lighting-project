@@ -18,6 +18,7 @@ public class CustomEffect implements IEffect, Runnable{
     private String owner;
     private Long speed;
     private TreeMap<String, ArrayList<Long>> stops;
+    private TreeMap<String, ArrayList<Long>> unalteredStops;
     private int intensity;
     private Logger logger;
 
@@ -27,6 +28,7 @@ public class CustomEffect implements IEffect, Runnable{
     }
 
     public void setStops(HashMap<String, ArrayList<Long>> stops) {
+        this.unalteredStops = new TreeMap<>(stops);
         this.stops = new TreeMap<>(stops);
     }
 
@@ -63,24 +65,37 @@ public class CustomEffect implements IEffect, Runnable{
         this.speed = speed;
     }
 
-    public void setIntensity(int intensity){
-        this.intensity = intensity;
-
-        TreeMap<String, ArrayList<Long>> newStops = new TreeMap<>();
-
-        for (String entry : stops.keySet()){
-            ArrayList<Long> newColour = LedState.applyIntensity(stops.get(entry), intensity);
-            newStops.put(entry, newColour);
+    @Override
+    public void setIntensity(int intensity, boolean snap) {
+        if (intensity != this.intensity) {
+            setIntensity(intensity);
         }
+    }
 
-        stops = newStops;
+    public void setIntensity(int intensity){
+        if (unalteredStops == null)
+            unalteredStops = stops;
+        if (unalteredStops != null) {
+            this.intensity = intensity;
+
+            TreeMap<String, ArrayList<Long>> newStops = new TreeMap<>();
+
+            for (String entry : unalteredStops.keySet()) {
+                ArrayList<Long> newColour = LedState.applyIntensity(unalteredStops.get(entry), intensity);
+                newStops.put(entry, newColour);
+            }
+
+            stops = newStops;
+        }
     }
 
     public void setLogger(Logger logger){
         this.logger = logger;
     }
 
-    public CustomEffect(){}
+    public CustomEffect(){
+        init();
+    }
 
 
     public void setTapeControl(ITapeControl tapeControl){
@@ -179,6 +194,11 @@ public class CustomEffect implements IEffect, Runnable{
 
             new Thread(this).start();
         }
+    }
+
+    @Override
+    public void init() {
+        terminated = false;
     }
 
     @Override

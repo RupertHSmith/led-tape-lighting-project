@@ -23,6 +23,16 @@ public class AlarmEvent implements IEffect, Runnable {
     public void start() throws TapeInUseException {
     }
 
+    @Override
+    public void init() {
+
+    }
+
+    @Override
+    public void setIntensity(int intensity, boolean snap) {
+
+    }
+
     public LedState terminate(){
         try {
             tc.halt();

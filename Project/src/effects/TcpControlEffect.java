@@ -61,6 +61,16 @@ public class TcpControlEffect implements IEffect, Runnable{
         }
     }
 
+    @Override
+    public void init() {
+        terminated = false;
+    }
+
+    @Override
+    public void setIntensity(int intensity, boolean snap) {
+
+    }
+
     private synchronized void setTerminated(boolean terminated){ this.terminated = terminated; }
 
     private synchronized boolean isTerminated() { return this.terminated; }

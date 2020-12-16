@@ -13,6 +13,14 @@ public interface IEffect {
      */
     void start() throws TapeInUseException;
 
+    void init();
+
+    /**
+     * Sets intensity whilst running
+     * @param intensity intensity to set
+     */
+    void setIntensity(int intensity, boolean snap);
+
     /**
      * Called to stop the effect running and release control of the Tape
      * @return Returns the state of the tape after termination (i.e. most effects will halt as they were)

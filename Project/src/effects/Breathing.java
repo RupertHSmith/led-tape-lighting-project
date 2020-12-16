@@ -9,6 +9,9 @@ public class Breathing implements IEffect, Runnable {
     private ITapeControl tapeControl;
     private int transition;
     private LedState colour;
+
+    private boolean intensityChanged;
+    private LedState unalteredColour;
     private int speed;
     private boolean terminated;
     private int intensity;
@@ -27,10 +30,19 @@ public class Breathing implements IEffect, Runnable {
         this.tapeControl = tapeControl;
         this.transition = transition;
         this.intensity = intensity;
-        this.colour = LedState.applyIntensity(colour, intensity);
+        this.unalteredColour = colour;
+        intensityChanged = false;
+        setAppliedColour(LedState.applyIntensity(colour, intensity));
         this.speed = speed;
+        init();
+    }
 
-        terminated = false;
+    private synchronized void setAppliedColour(LedState colour){
+        this.colour = colour;
+    }
+
+    private synchronized LedState getAppliedColour(){
+        return this.colour;
     }
 
     @Override
@@ -41,12 +53,26 @@ public class Breathing implements IEffect, Runnable {
         new Thread(this).start();
     }
 
+    @Override
+    public void init() {
+        terminated = false;
+    }
+
     public int getSpeed(){
         return this.speed;
     }
 
     public LedState getColour(){
-        return this.colour;
+        //Not sure about this...
+        return this.unalteredColour;
+    }
+
+    @Override
+    public void setIntensity(int intensity, boolean snap) {
+        if (this.intensity != intensity) {
+            this.intensity = intensity;
+            setAppliedColour(LedState.applyIntensity(unalteredColour, intensity));
+        }
     }
 
     public int getIntensity(){
@@ -70,7 +96,7 @@ public class Breathing implements IEffect, Runnable {
             while (!getTerminated()) {
 
                 if (!getTerminated()) {
-                    tapeControl.fadeTo(colour,  calculateDuration(), this);
+                    tapeControl.fadeTo(getAppliedColour(),  calculateDuration(), this);
                 }
 
                 if (!getTerminated()) {

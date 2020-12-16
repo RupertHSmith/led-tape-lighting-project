@@ -29,6 +29,11 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
 
     private boolean alarmComplete;
 
+    @Override
+    public void setIntensity(int intensity, boolean snap) {
+
+    }
+
     public Standby(ITapeControl tc, IAlarmController alarmController, int transition, List<Alarm> alarms, Logger logger){
         this.logger = logger;
         this.tc = tc;
@@ -37,6 +42,7 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
 
         alarmComplete = false;
         setAlarmCancelled(false);
+        init();
 
         if(alarms != null){
             this.alarms = alarms;
@@ -93,6 +99,11 @@ public class Standby implements IEffect, IAlarmListener, Runnable {
     @Override
     public void start() throws TapeInUseException {
         new Thread(this).start();
+    }
+
+    @Override
+    public void init() {
+        terminated = false;
     }
 
     @Override

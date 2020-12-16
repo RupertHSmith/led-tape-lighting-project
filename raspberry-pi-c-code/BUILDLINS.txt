@@ -1,0 +1,5 @@
+gcc -I/usr/lib/jvm/java-11-openjdk-armhf/include/linux -I/usr/lib/jvm/java-11-openjdk-armhf/include -lwiringPi -o libUartCode.so -shared uart-code.c
+/* BUILD COMMAND FOR SHARED C LIBRARY */
+
+java -Djava.library.path=. UartCode     
+/* COMMAND TO RUN JAVA */

@@ -1,13 +1,18 @@
 package effects;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import common.*;
+import database.IUpdateDatabase;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class EffectsManager implements TcpDirectFinishedListener{
 
@@ -23,24 +28,98 @@ public class EffectsManager implements TcpDirectFinishedListener{
     public static final byte UDP_CONNECTION_VERSION = 1;
     public static final int UDP_DIRECT_REQUEST_PORT = 5558;
     public static final int UDP_DIRECT_NOTIFY_PORT = 5557;
-//test commit
+
+    private static final long CONTROL_PANEL_PERIOD = 25;
 
     private ITapeControl tc;
+    private UartCode uartCode;
     private IEffect currentEffect;
     private IAlarmController alarmController;
+    private IUpdateDatabase updateDatabase;
     private Logger logger;
     private boolean tcpDirectMode;
     private DeviceUID deviceUID;
 
+    private int controlPanelIntensity;
+    private boolean controlPanelEnabled;
+
+    private Timer controlPanelScheduler;
+  //  private Timer lockouts;
+
+    private ScheduledExecutorService lockouts;
+    private Future<?> databaseLockoutFuture;
+    private Future<?> databaseFloodProtector;
+
     private IEffect effectBeforeTcpDirect;
 
-    public EffectsManager (ITapeControl tc, DeviceUID duid, IAlarmController alarmController, Logger logger){
+    public EffectsManager (ITapeControl tc, DeviceUID duid, IAlarmController alarmController, Logger logger, IUpdateDatabase updateDatabase){
         deviceUID = duid;
         this.tc = tc;
         this.alarmController = alarmController;
         this.logger = logger;
+        this.updateDatabase = updateDatabase;
+        this.uartCode = new UartCode();
+        controlPanelEnabled = false;
+        initControlPanelScheduler();
         setTcpDirectMode(false);
         listenForTcpDirectStart();
+        lockouts = Executors.newScheduledThreadPool(2);
+
+
+
+    }
+
+    private void initControlPanelScheduler(){
+        controlPanelScheduler = new Timer();
+        controlPanelScheduler.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                //Check for update..
+                int newVal = uartCode.getControlPanelIntensity();
+                int delta = Math.abs(newVal - controlPanelIntensity);
+                if (delta > 0){
+                    controlPanelIntensity = newVal;
+                    if (currentEffect != null){
+                        //Lockout database
+                        //Cancel any existing timeout timers
+                        if (databaseLockoutFuture != null){
+                            if (!databaseLockoutFuture.isCancelled())
+                                databaseLockoutFuture.cancel(true);
+                        }
+
+                        if (databaseFloodProtector != null){
+                            if (!databaseFloodProtector.isCancelled())
+                                databaseFloodProtector.cancel(true);
+                        }
+
+                        RGBTapeController.lockDatabaseUpdates = true;
+                        databaseLockoutFuture = lockouts.schedule(() -> RGBTapeController.lockDatabaseUpdates = false,1, TimeUnit.SECONDS);
+
+                        boolean standby;
+                        if (newVal == 0) {
+                            if (currentEffect != null && !currentEffect.getClass().getSimpleName().equals(STANDBY)) {
+                                System.out.println("STORING PREV EFFECT FOR USE WHEN RESUMING: " + currentEffect.getClass().getSimpleName());
+                                effectBeforeTcpDirect = currentEffect;
+                            }
+                            standby = true;
+                            changeEffect(new Standby(tc, alarmController, 2, alarmController.getAlarms(), logger));
+                        } else {
+                            //if currently standby and we can remember prev effect then switch to this..
+                            if (effectBeforeTcpDirect != null && currentEffect.getClass().getSimpleName().equals(STANDBY)){
+                                System.out.println("RESUMING PREV EFFECT PRE STANDBY: " + effectBeforeTcpDirect.getClass().getSimpleName());
+                                effectBeforeTcpDirect.init();
+                                effectBeforeTcpDirect.setIntensity(controlPanelIntensity, false);
+                                changeEffect(effectBeforeTcpDirect);
+                            }
+                            standby = false;
+                        }
+
+                        databaseFloodProtector = lockouts.schedule(()-> updateDatabase.writeDeviceState(standby, controlPanelIntensity),500, TimeUnit.MILLISECONDS);
+                        currentEffect.setIntensity(controlPanelIntensity, delta < 50);
+                    }
+                }
+            }
+        }, 0, CONTROL_PANEL_PERIOD);
     }
 
     /**
@@ -264,7 +343,12 @@ public class EffectsManager implements TcpDirectFinishedListener{
         //We do not switch effects if we are in TCP direct mode
         if (!isTcpDirectMode()) {
             try {
-                if (deviceState.isStandby()) {
+                if(!controlPanelEnabled){
+                    controlPanelEnabled = true;
+                    uartCode.setControlPanelPageIntensity(55);
+                }
+
+                if (deviceState.isStandby() || deviceState.getIntensity() == 0) {
                     if (currentEffect == null) {
                         changeEffect(new Standby(tc, alarmController, 2, alarmController.getAlarms(), logger));
                     } else if (!currentEffect.getClass().getSimpleName().equals(STANDBY)) {
@@ -363,6 +447,7 @@ public class EffectsManager implements TcpDirectFinishedListener{
                             break;
                     }
                     logger.writeMessage(this, deviceState.getType());
+                    uartCode.setControlPanelIntensity(deviceState.getIntensity());
                 }
             } catch (ClassCastException e) {
                 logger.writeError(this, e);
